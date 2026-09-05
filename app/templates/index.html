@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Patient Assistance Copilot — Application Generator</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="wrap">
+        <p class="kicker">Phase 5 · Export Service</p>
+        <h1>Patient Assistance Copilot</h1>
+        <p class="lede">
+          Generate a manufacturer Patient Assistance Program application as a
+          downloadable PDF. Eligibility is scored against the 2026 HHS Federal
+          Poverty Guidelines, then packed into an official-format packet you can
+          print and submit.
+        </p>
+      </div>
+    </header>
+
+    <main class="wrap layout">
+      <section class="card">
+        <h2>Build the application</h2>
+        <p class="hint">
+          Choose a seeded program and covered drug, then enter the household
+          figures used for the FPL screen. The file never touches disk on the
+          server — it streams straight to the browser.
+        </p>
+
+        <form id="app-form" novalidate>
+          <div class="grid">
+            <label>
+              Patient full name
+              <input id="patient_name" name="patient_name" required placeholder="Maria Chen" />
+            </label>
+            <label>
+              State
+              <select id="state" name="state" required></select>
+            </label>
+            <label>
+              Assistance program
+              <select id="program_name" name="program_name" required>
+                <option value="">Loading programs…</option>
+              </select>
+            </label>
+            <label>
+              Requested medication
+              <select id="medication_name" name="medication_name" required>
+                <option value="">Select a program first</option>
+              </select>
+            </label>
+            <label>
+              Gross annual household income
+              <input id="annual_income" name="annual_income" type="number" min="0" step="1" required placeholder="35000" />
+            </label>
+            <label>
+              Household size
+              <input id="household_size" name="household_size" type="number" min="1" max="20" required value="1" />
+            </label>
+          </div>
+
+          <label class="check">
+            <input id="is_uninsured" name="is_uninsured" type="checkbox" checked />
+            Patient is uninsured
+          </label>
+
+          <div class="actions">
+            <button type="submit" id="submit-btn">Generate application PDF</button>
+            <p id="status" class="status" role="status"></p>
+          </div>
+        </form>
+      </section>
+
+      <aside class="stack">
+        <section class="card preview" id="eligibility-card">
+          <h2>Live FPL screen</h2>
+          <p class="hint">
+            2026 HHS poverty guideline for the selected state and household.
+            Most manufacturer PAPs cap eligibility at 400% FPL (GSK For You uses 300%).
+          </p>
+          <dl id="eligibility">
+            <div><dt>100% FPL</dt><dd id="fpl-base">—</dd></div>
+            <div><dt>Income as % of FPL</dt><dd id="fpl-pct">—</dd></div>
+            <div><dt>Program ceiling</dt><dd id="fpl-cap">—</dd></div>
+            <div><dt>Determination</dt><dd id="fpl-verdict">Enter income to calculate</dd></div>
+          </dl>
+        </section>
+
+        <section class="card">
+          <h2>What the PDF includes</h2>
+          <ul class="sections">
+            <li><strong>A.</strong> Patient name, address/state, household, income, FPL %, insurance</li>
+            <li><strong>B.</strong> Medication, strength, prescriber attestation</li>
+            <li><strong>C.</strong> Verified criteria, including the calculated FPL threshold</li>
+            <li><strong>D.</strong> Required attachments (1040/W-2, Medicaid denial, script)</li>
+            <li><strong>E.</strong> Patient and physician signature lines</li>
+          </ul>
+        </section>
+      </aside>
+    </main>
+
+    <footer class="wrap foot">
+      <p>
+        Packet is a structured application generated from program data. It is not
+        a manufacturer’s copyrighted original. Confirm any program-specific addenda
+        before mailing.
+      </p>
+    </footer>
+    <script src="/static/app.js"></script>
+  </body>
+</html>
