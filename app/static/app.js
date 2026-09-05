@@ -156,14 +156,19 @@ document.getElementById("app-form").addEventListener("submit", async (event) => 
     }
     const blob = await res.blob();
     const url = URL.createObjectURL(blob);
+    const frame = document.getElementById("pdf-frame");
+    const wrap = document.getElementById("pdf-frame-wrap");
+    if (frame.dataset.url) URL.revokeObjectURL(frame.dataset.url);
+    frame.src = url;
+    frame.dataset.url = url;
+    wrap.hidden = false;
     const a = document.createElement("a");
     a.href = url;
     a.download = "assistance_application.pdf";
     document.body.appendChild(a);
     a.click();
     a.remove();
-    URL.revokeObjectURL(url);
-    setStatus("Application PDF downloaded.");
+    setStatus("Application PDF ready — preview below and downloaded.");
   } catch (err) {
     setStatus(err.message, true);
   } finally {
