@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
@@ -13,6 +14,17 @@ from app.db.session import SessionLocal, engine
 APP_DIR = Path(__file__).resolve().parent
 
 
+@asynccontextmanager
+async def lifespan(_application: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    db = SessionLocal()
+    try:
+        seed_database(db)
+    finally:
+        db.close()
+    yield
+
+
 def create_app() -> FastAPI:
     application = FastAPI(
         title="Patient Assistance Copilot",
@@ -21,6 +33,7 @@ def create_app() -> FastAPI:
             "Program applications as downloadable PDFs."
         ),
         version="5.0.0",
+        lifespan=lifespan,
     )
     application.include_router(api_router, prefix="/api/v1")
     application.mount("/static", StaticFiles(directory=APP_DIR / "static"), name="static")
@@ -38,13 +51,3 @@ def create_app() -> FastAPI:
 
 
 app = create_app()
-
-
-@app.on_event("startup")
-def on_startup() -> None:
-    Base.metadata.create_all(bind=engine)
-    db = SessionLocal()
-    try:
-        seed_database(db)
-    finally:
-        db.close()
