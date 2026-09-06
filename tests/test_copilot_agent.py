@@ -120,3 +120,10 @@ def test_triage_endpoint_returns_action_plan(client: TestClient) -> None:
     assert payload["savings"]["alternatives"][0]["savings_percent"] == 80.0
     assert payload["fpl"]["limit_percent"] == 400.0
     assert str(payload["fpl"]["limit_percent"]) in payload["action_plan"]
+
+
+def test_homepage_renders(client: TestClient) -> None:
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "Sourcing copilot" in response.text
+    assert "Humira" in response.text

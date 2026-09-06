@@ -43,7 +43,7 @@ def create_app() -> FastAPI:
 
     @application.get("/", response_class=HTMLResponse)
     def index(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse("index.html", {"request": request})
+        return templates.TemplateResponse(request, "index.html")
 
     @application.get("/health")
     def health() -> dict[str, str]:
