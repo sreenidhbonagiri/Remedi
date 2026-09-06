@@ -8,7 +8,11 @@
   </head>
   <body>
     <nav class="navbar">
-      <div class="wrap navbar-inner">
+      <div class="navbar-inner">
+        <ul class="nav-links">
+          <li><a href="#how-it-works">How it Works</a></li>
+          <li><a href="#capabilities">Capabilities</a></li>
+        </ul>
         <a class="brand" href="/">
           <span class="brand-mark" aria-hidden="true">
             <svg viewBox="0 0 40 40" class="brand-bot-svg">
@@ -22,58 +26,53 @@
           </span>
           <span class="brand-name">Remedi</span>
         </a>
-        <ul class="nav-links">
-          <li><a href="#how-it-works">How it Works</a></li>
-          <li><a href="#about">About</a></li>
-        </ul>
-        <a class="btn btn-primary btn-pill nav-cta" href="/app">Launch App →</a>
+        <a class="btn btn-primary btn-pill nav-cta" href="/app">Launch Copilot →</a>
       </div>
     </nav>
 
     <section class="hero">
-      <div class="wrap hero-grid">
-        <div class="hero-inner">
-          <p class="eyebrow">Meet Remy, your savings copilot</p>
-          <h1>No one should have to choose between groceries and the medicine they need.</h1>
-          <p class="hero-sub">
-            Drug makers give away billions in free medication every year, but the
-            forms are buried under confusing paperwork. Remedi pairs you with Remy
-            to find lower-cost generic alternatives and check if you qualify for
-            free medicine in seconds.
-          </p>
-          <div class="hero-actions">
-            <a href="/app" class="btn btn-primary">Launch Remedi</a>
-            <a href="/app" class="btn btn-ghost">Talk to Remy</a>
-          </div>
+      <div class="wrap hero-inner">
+        <span class="eyebrow-pill">🌿 Patient Prescription Advocacy</span>
+        <h1>Instantly Find Lower Costs for Your Prescriptions.</h1>
+        <p class="hero-sub">
+          Tell Remy what medicine you need. We instantly check official FDA
+          records for identical generic alternatives and check if you qualify
+          for free medicine directly from the manufacturer.
+        </p>
+        <div class="hero-actions">
+          <a href="/app" class="btn btn-primary btn-pill">Check Your Medicine with Remy</a>
+          <a href="#how-it-works" class="btn btn-ghost btn-pill">How it Works ↓</a>
         </div>
 
-        <div class="hero-mockup glass-card" aria-hidden="true">
-          <div class="mockup-header">
-            <span class="mockup-dot"></span>
-            <span class="mockup-dot"></span>
-            <span class="mockup-dot"></span>
-            <span class="mockup-title">Remy — live preview</span>
-          </div>
-          <div class="mockup-bubble">
-            <span class="remy-bot remy-bot-sm" aria-hidden="true">
-              <svg viewBox="0 0 120 120" class="remy-bot-svg">
-                <circle cx="60" cy="64" r="42" class="remy-face" />
-                <rect x="56" y="10" width="4" height="20" class="remy-antenna-stem" />
-                <circle cx="58" cy="10" r="6" class="remy-antenna-dot" />
-                <circle cx="44" cy="60" r="7" class="remy-eye" />
-                <circle cx="76" cy="60" r="7" class="remy-eye" />
-                <path d="M42 80 Q60 92 78 80" class="remy-mouth" />
-              </svg>
-            </span>
-            <p>"Humira runs $8,000 — but adalimumab has the same active ingredient for $1,600."</p>
-          </div>
-          <div class="mockup-savings">
-            <span class="mockup-savings-label">You could save</span>
-            <span class="mockup-savings-value">$6,400 / yr</span>
-          </div>
-          <div class="mockup-input">
-            <span>I take Humira, family of 2, $32k income…</span>
-            <span class="mockup-send">Ask Remy →</span>
+        <div class="hero-mockup-wrap">
+          <div class="hero-mockup glass-card" aria-hidden="true">
+            <div class="mockup-header">
+              <span class="mockup-dot"></span>
+              <span class="mockup-dot"></span>
+              <span class="mockup-dot"></span>
+              <span class="mockup-title">Remy — live preview</span>
+            </div>
+            <div class="mockup-bubble">
+              <span class="remy-bot remy-bot-sm" aria-hidden="true">
+                <svg viewBox="0 0 120 120" class="remy-bot-svg">
+                  <circle cx="60" cy="64" r="42" class="remy-face" />
+                  <rect x="56" y="10" width="4" height="20" class="remy-antenna-stem" />
+                  <circle cx="58" cy="10" r="6" class="remy-antenna-dot" />
+                  <circle cx="44" cy="60" r="7" class="remy-eye" />
+                  <circle cx="76" cy="60" r="7" class="remy-eye" />
+                  <path d="M42 80 Q60 92 78 80" class="remy-mouth" />
+                </svg>
+              </span>
+              <p>"Humira runs $8,000 — but adalimumab has the same active ingredient for $1,600."</p>
+            </div>
+            <div class="mockup-savings">
+              <span class="mockup-savings-label">You could save</span>
+              <span class="mockup-savings-value">$6,400 / yr</span>
+            </div>
+            <div class="mockup-input">
+              <span>I take Humira, family of 2, $32k income…</span>
+              <span class="mockup-send">Ask Remy →</span>
+            </div>
           </div>
         </div>
       </div>
@@ -82,12 +81,8 @@
     <section class="stats-strip">
       <div class="wrap stats-grid">
         <div class="stat">
-          <span class="stat-value">$6,400+</span>
-          <span class="stat-label">Avg Saved</span>
-        </div>
-        <div class="stat">
-          <span class="stat-value">100%</span>
-          <span class="stat-label">Exact Math</span>
+          <span class="stat-value">~80%</span>
+          <span class="stat-label">Typical Savings</span>
         </div>
         <div class="stat">
           <span class="stat-value">&lt; 1 min</span>
@@ -97,23 +92,60 @@
           <span class="stat-value">2026</span>
           <span class="stat-label">Rules</span>
         </div>
+        <div class="stat">
+          <span class="stat-value">$0</span>
+          <span class="stat-label">Cost to Patients</span>
+        </div>
       </div>
     </section>
 
-    <section class="how-it-works wrap" id="how-it-works">
-      <h2 class="section-heading">Why Remedi</h2>
+    <section class="steps wrap" id="how-it-works">
+      <div class="section-heading-wrap">
+        <h2 class="section-heading">How Remedi Works</h2>
+        <p class="section-sub">Three simple steps between you and a lower prescription bill.</p>
+      </div>
+      <div class="steps-grid">
+        <article class="step-card glass-card">
+          <span class="step-number">01</span>
+          <h3>Enter Your Prescription</h3>
+          <p>Just type your medication name and basic household details.</p>
+        </article>
+        <article class="step-card glass-card">
+          <span class="step-number">02</span>
+          <h3>Remy Scans Official Records</h3>
+          <p>
+            Remy matches FDA-approved generic alternatives and evaluates your
+            income against official assistance programs.
+          </p>
+        </article>
+        <article class="step-card glass-card">
+          <span class="step-number">03</span>
+          <h3>Get Lower Prices or Free Medicine</h3>
+          <p>
+            See how much you save immediately and download ready-to-sign
+            financial aid paperwork for your doctor.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section class="capabilities wrap" id="capabilities">
+      <div class="section-heading-wrap">
+        <h2 class="section-heading">Why Remedi</h2>
+        <p class="section-sub">Built on official data, not guesswork.</p>
+      </div>
       <div class="cards-grid">
         <article class="feature-card glass-card">
           <div class="feature-icon">💊</div>
-          <h3>The Exact Same Medicine for Less</h3>
+          <h3>Identical Generic Matching</h3>
           <p>
-            We search official FDA records to find generic alternatives with the
-            exact same active ingredients at a fraction of the cost.
+            We search official FDA records to find generic alternatives with
+            the exact same active ingredients at a fraction of the cost.
           </p>
         </article>
         <article class="feature-card glass-card">
           <div class="feature-icon">🎁</div>
-          <h3>Check for Free Medicine Programs</h3>
+          <h3>Free Manufacturer Aid Check</h3>
           <p>
             Many drug makers provide free prescriptions to households within
             certain income levels. We check if you qualify right away.
@@ -121,10 +153,18 @@
         </article>
         <article class="feature-card glass-card">
           <div class="feature-icon">📝</div>
-          <h3>Get Your Form Ready to Sign</h3>
+          <h3>Ready-to-Sign Application PDF</h3>
           <p>
-            Download a pre-filled application with your details so you can take
-            it straight to your doctor to sign.
+            Download a pre-filled application with your details so you can
+            take it straight to your doctor to sign.
+          </p>
+        </article>
+        <article class="feature-card glass-card">
+          <div class="feature-icon">🎯</div>
+          <h3>100% Exact Numbers</h3>
+          <p>
+            Every dollar figure and eligibility status comes straight from
+            our pricing and eligibility tools — nothing is guessed.
           </p>
         </article>
       </div>
@@ -143,10 +183,10 @@
           </svg>
         </span>
         <div class="banner-copy">
-          <h2>Start saving with Remy today</h2>
-          <p>Free to use, no account needed. Answers in under a minute.</p>
+          <h2>Ready to find lower prices on your prescriptions?</h2>
+          <p>Start with Remy now — it takes less than 60 seconds.</p>
         </div>
-        <a href="/app" class="btn btn-primary">Launch Remedi</a>
+        <a href="/app" class="btn btn-primary btn-pill">Open Remedi Copilot →</a>
       </div>
     </section>
 

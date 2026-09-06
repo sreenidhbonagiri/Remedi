@@ -126,7 +126,7 @@ def test_landing_and_app_pages_render(client: TestClient) -> None:
     landing = client.get("/")
     assert landing.status_code == 200
     assert "Remedi" in landing.text
-    assert "Launch App" in landing.text
+    assert "Launch Copilot" in landing.text
 
     workspace = client.get("/app")
     assert workspace.status_code == 200
