@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Remedi Workspace — Ask Remy</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+  </head>
+  <body class="app-body">
+    <header class="app-topbar">
+      <div class="wrap app-topbar-inner">
+        <a class="brand" href="/">
+          <span class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 40 40" class="brand-bot-svg">
+              <circle cx="20" cy="22" r="14" class="remy-face" />
+              <circle cx="15" cy="21" r="2.6" class="remy-eye" />
+              <circle cx="25" cy="21" r="2.6" class="remy-eye" />
+              <path d="M14 27 Q20 31 26 27" class="remy-mouth" />
+              <line x1="20" y1="8" x2="20" y2="4" class="remy-antenna-stem" />
+              <circle cx="20" cy="4" r="2" class="remy-antenna-dot" />
+            </svg>
+          </span>
+          <span class="brand-name">Remedi</span>
+        </a>
+        <a class="back-link" href="/">← Back to Overview</a>
+        <span class="status-badge">
+          <span class="status-dot"></span>
+          🟢 Remy is online
+        </span>
+      </div>
+    </header>
+
+    <main class="app-shell wrap">
+      <section class="remy-welcome glass-card remy-bubble">
+        <span class="remy-bot" aria-hidden="true">
+          <svg viewBox="0 0 120 120" class="remy-bot-svg">
+            <circle cx="60" cy="64" r="42" class="remy-face" />
+            <rect x="56" y="10" width="4" height="20" class="remy-antenna-stem" />
+            <circle cx="58" cy="10" r="6" class="remy-antenna-dot" />
+            <circle cx="44" cy="60" r="7" class="remy-eye" />
+            <circle cx="76" cy="60" r="7" class="remy-eye" />
+            <path d="M42 80 Q60 92 78 80" class="remy-mouth" />
+          </svg>
+        </span>
+        <div class="remy-welcome-text">
+          <p class="remy-name">Remy <span class="remy-tag">Your friendly prescription savings guide</span></p>
+          <p>
+            Hi, I'm Remy! Tell me what medicine you take and a little about your
+            household. I'll search for lower-cost alternatives and check if you
+            can get it for free.
+          </p>
+        </div>
+      </section>
+
+      <div class="example-scenarios">
+        <p class="example-label">Quick start:</p>
+        <button type="button" class="example-btn" data-example="humira">
+          Humira – Family of 2
+        </button>
+        <button type="button" class="example-btn" data-example="eliquis">
+          Eliquis – Senior on Medicare
+        </button>
+      </div>
+
+      <section class="glass-card search-card">
+        <form id="triage-form" novalidate>
+          <label>
+            Tell Remy what's going on
+            <textarea
+              id="triage_query"
+              name="triage_query"
+              required
+              rows="4"
+              placeholder="I take Humira, earn $35,000, household of 1 in PA, uninsured."
+            ></textarea>
+          </label>
+          <div class="grid">
+            <label>
+              Annual income (optional override)
+              <input id="triage_income" name="triage_income" type="number" min="0" step="1" placeholder="35000" />
+            </label>
+            <label>
+              Household size
+              <input id="triage_household" name="triage_household" type="number" min="1" max="20" value="1" />
+            </label>
+            <label>
+              State
+              <select id="triage_state" name="triage_state"></select>
+            </label>
+            <label class="check">
+              <input id="triage_uninsured" name="triage_uninsured" type="checkbox" checked />
+              I don't have insurance
+            </label>
+            <label class="check">
+              <input id="triage_medicare" name="triage_medicare" type="checkbox" />
+              I'm on Medicare
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" id="triage-btn" class="btn btn-primary">Ask Remy</button>
+            <p id="triage-status" class="status" role="status"></p>
+          </div>
+        </form>
+      </section>
+
+      <div id="triage-empty" class="empty-state">
+        No results yet. Describe a medication like Humira, Januvia, or Nucala
+        above, or click a quick-start chip to get going.
+      </div>
+      <div id="triage-error" class="error-banner" hidden></div>
+      <div id="triage-savings-banner" class="savings-banner" hidden></div>
+
+      <div id="triage-results" hidden class="results-grid">
+        <div class="result-block glass-card">
+          <h3>What You're Paying</h3>
+          <p id="result-paying"></p>
+        </div>
+        <div class="result-block glass-card">
+          <h3>Option 1: Ask Your Doctor About an Equivalent Generic</h3>
+          <div id="result-generic"></div>
+        </div>
+        <div class="result-block glass-card">
+          <h3>Option 2: Free Medicine Program</h3>
+          <div id="result-program"></div>
+        </div>
+      </div>
+
+      <div id="application-card" class="application-card glass-card" hidden>
+        <h3>Get Your Form Ready to Sign</h3>
+        <p class="hint">We've pre-filled your form. Just add your name.</p>
+        <form id="apply-form" novalidate>
+          <label>
+            Your full name
+            <input id="apply_patient_name" name="apply_patient_name" required placeholder="Maria Chen" />
+          </label>
+          <div class="actions">
+            <button type="submit" id="apply-btn" class="btn btn-primary">Download My Ready-to-Sign Form</button>
+            <p id="apply-status" class="status" role="status"></p>
+          </div>
+        </form>
+        <div id="pdf-frame-wrap" class="pdf-frame-wrap" hidden>
+          <iframe id="pdf-frame" title="Free medication assistance application preview"></iframe>
+        </div>
+      </div>
+    </main>
+
+    <script src="/static/app.js"></script>
+  </body>
+</html>

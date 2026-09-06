@@ -42,8 +42,12 @@ def create_app() -> FastAPI:
     templates = Jinja2Templates(directory=str(APP_DIR / "templates"))
 
     @application.get("/", response_class=HTMLResponse)
-    def index(request: Request) -> HTMLResponse:
-        return templates.TemplateResponse(request, "index.html")
+    def landing(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(request, "landing.html")
+
+    @application.get("/app", response_class=HTMLResponse)
+    def workspace(request: Request) -> HTMLResponse:
+        return templates.TemplateResponse(request, "app.html")
 
     @application.get("/health")
     def health() -> dict[str, str]:
