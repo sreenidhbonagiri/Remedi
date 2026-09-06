@@ -40,3 +40,186 @@ Over **$5.4 billion** in manufacturer Patient Assistance Programs (PAPs) goes un
 ---
 
 ## System Architecture
+
+```text
+User Request (Intake)
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────┐
+│                   LangGraph State Engine                    │
+│                                                             │
+│   ┌────────────────────────┐      ┌─────────────────────┐   │
+│   │  Entity Extraction     │ ───► │  Tool Execution     │   │
+│   │  (Drug, Household, FPL)│      │  (FDA, DB, FPL Calc)│   │
+│   └────────────────────────┘      └──────────┬──────────┘   │
+│                                              │              │
+│                                              ▼              │
+│   ┌────────────────────────┐      ┌─────────────────────┐   │
+│   │ Deterministic Fallback │ ◄─── │ Guardrail Validator │   │
+│   │ (Deterministic Plan)   │ (err)│ (Zero-Hallucination)│   │
+│   └──────────┬─────────────┘      └──────────┬──────────┘   │
+│              │                               │ (ok)         │
+│              ▼                               ▼              │
+│         Action Plan & Eligibility Decision Matrix           │
+└──────────────────────────────┬──────────────────────────────┘
+                               │
+               ┌───────────────┴───────────────┐
+               ▼                               ▼
+       REST Response (JSON)            ReportLab Generator
+      • Generic Equivalents           • Dynamic PDF Stream
+      • Net Dollar Savings            • Pre-Filled Application
+      • Doctor Discussion Prompts     • Prescriber Attestations
+```
+
+---
+
+## Tech Stack
+
+- **Backend Framework:** FastAPI, Uvicorn, Pydantic v2
+- **Agent Orchestration:** LangGraph, LangChain Core
+- **Data Ingestion:** OpenFDA Drug API, FDA Orange Book Therapeutic Equivalence Registry
+- **Document Engine:** ReportLab (Binary streaming PDF generation)
+- **Frontend Architecture:** Vanilla JavaScript, CSS3 Design System (Warm Editorial aesthetic inspired by Remitae)
+- **Test Infrastructure:** Pytest, HTTPX Async Client (24 unit/integration tests)
+
+---
+
+## Directory Structure
+
+```text
+remedi/
+├── app/
+│   ├── main.py                  # FastAPI routing & application factory
+│   ├── routes/
+│   │   ├── agent.py             # LangGraph triage & copilot endpoints
+│   │   └── applications.py      # PDF document synthesis endpoints
+│   ├── services/
+│   │   ├── copilot_agent.py     # State graph definitions & guardrails
+│   │   ├── fda_service.py       # OpenFDA API async client
+│   │   ├── fpl_calculator.py    # 2026 statutory poverty algorithms
+│   │   └── pdf_generator.py     # ReportLab layout & form pre-fill logic
+│   ├── static/
+│   │   ├── app.js               # Reactive client-side triage controller
+│   │   └── styles.css           # Editorial design system & responsive layout
+│   └── templates/
+│       ├── landing.html         # Marketing overview & product architecture
+│       └── app.html             # Interactive Remy copilot workspace
+├── tests/
+│   ├── test_agent.py            # LangGraph state machine integration tests
+│   ├── test_fpl.py              # HHS statutory math unit tests
+│   └── test_pdf.py              # PDF binary stream validity tests
+├── requirements.txt
+└── README.md
+```
+
+---
+
+## Quickstart
+
+### Prerequisites
+- Python 3.11+
+- Git
+
+### 1. Clone & Setup Environment
+```bash
+git clone [https://github.com/](https://github.com/)<YOUR_GITHUB_USERNAME>/remedi.git
+cd remedi
+
+python3 -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 2. Configure Environment Variables (Optional)
+Remedi operates offline using rule-based deterministic fallbacks. To connect a live frontier model:
+```bash
+cp .env.example .env
+# Add your OPENAI_API_KEY or ANTHROPIC_API_KEY
+```
+
+### 3. Run Test Suite
+```bash
+python3 -m pytest -v
+```
+All 24 test cases across API endpoints, fallback states, and statutory calculation logic should pass:
+```text
+======================= 24 passed in 1.42s =======================
+```
+
+### 4. Launch Development Server
+```bash
+python3 -m uvicorn app.main:app --reload --port 8000
+```
+- **Landing Page:** `http://localhost:8000/`
+- **Remy Workspace:** `http://localhost:8000/app`
+- **Interactive OpenAPI Docs:** `http://localhost:8000/docs`
+
+---
+
+## API Reference
+
+### 1. Prescription Triage
+Evaluates raw medication requests, resolves dosage, checks FDA equivalence, and calculates FPL tiers.
+
+```http
+POST /api/v1/agent/triage
+Content-Type: application/json
+
+{
+  "drug_name": "Humira",
+  "household_size": 2,
+  "annual_income": 32000,
+  "state": "PA",
+  "insurance_status": "uninsured"
+}
+```
+
+**Response (200 OK):**
+```json
+{
+  "status": "success",
+  "drug_queried": "Humira",
+  "generic_equivalent": "adalimumab",
+  "te_code": "AB",
+  "brand_price_est": 8000.0,
+  "generic_price_est": 1600.0,
+  "estimated_savings_pct": 80,
+  "fpl_percentage": 151.3,
+  "eligible_programs": [
+    {
+      "program_name": "myAbbVie Assist",
+      "fpl_cap_pct": 400,
+      "coverage_type": "100% Free Medication"
+    }
+  ]
+}
+```
+
+### 2. Stream Pre-Filled Application PDF
+Synthesizes verified triage data into a completed PDF document ready for physician sign-off.
+
+```http
+POST /api/v1/applications/generate-pdf
+Content-Type: application/json
+
+{
+  "patient_name": "Jane Doe",
+  "drug_name": "Humira",
+  "annual_income": 32000,
+  "household_size": 2,
+  "program_name": "myAbbVie Assist"
+}
+```
+*Returns `Content-Type: application/pdf` binary stream directly in under 200ms.*
+
+---
+
+## Clinical Safety & Non-Diagnostic Boundary
+
+Remedi is strictly an administrative and educational navigation engine designed to surface public FDA bioequivalence data and publicly funded manufacturer assistance criteria. Remedi does not provide clinical diagnoses, medical advice, or prescription modification orders. All medication substitutions must be authorized by a licensed healthcare prescriber.
+
+---
+
+## License
+
+Distributed under the MIT License. See `LICENSE` for details.
