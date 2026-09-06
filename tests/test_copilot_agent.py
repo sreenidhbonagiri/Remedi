@@ -125,5 +125,5 @@ def test_triage_endpoint_returns_action_plan(client: TestClient) -> None:
 def test_homepage_renders(client: TestClient) -> None:
     response = client.get("/")
     assert response.status_code == 200
-    assert "Sourcing copilot" in response.text
+    assert "RxBridge" in response.text
     assert "Humira" in response.text

@@ -49,7 +49,8 @@ body {
 .lede {
   max-width: 42rem;
   margin: 0;
-  line-height: 1.5;
+  line-height: 1.6;
+  font-size: 1.05rem;
   color: #d9d2c4;
 }
 
@@ -69,14 +70,25 @@ body {
 }
 .card h2 {
   margin: 0 0 0.4rem;
-  font-size: 1.15rem;
+  font-size: 1.2rem;
+  line-height: 1.35;
   color: var(--navy);
+}
+.subtitle {
+  margin: 0 0 0.9rem;
+  font-size: 0.85rem;
+  color: var(--teal);
+  font-weight: 600;
 }
 .hint {
   margin: 0 0 1.1rem;
   color: var(--muted);
-  font-size: 0.95rem;
-  line-height: 1.45;
+  font-size: 0.97rem;
+  line-height: 1.55;
+}
+.hint.small {
+  margin: -0.3rem 0 0.9rem;
+  font-size: 0.87rem;
 }
 
 .grid {
@@ -231,11 +243,52 @@ textarea:focus {
   background: #f7f4ec;
   color: var(--muted);
   border: 1px dashed var(--line);
+  line-height: 1.5;
 }
 .error-banner {
   background: #f8ecec;
   color: var(--danger);
   border: 1px solid #e3c6c6;
+}
+.savings-banner {
+  margin-top: 1rem;
+  padding: 0.95rem 1.1rem;
+  border-radius: 6px;
+  background: #e6f4ec;
+  border: 1px solid #a9d8bc;
+  color: var(--ok);
+  font-weight: 700;
+  font-size: 1.02rem;
+  line-height: 1.4;
+}
+
+.example-scenarios {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1.2rem;
+}
+.example-label {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--navy);
+}
+.example-btn {
+  font: inherit;
+  font-weight: 600;
+  font-size: 0.85rem;
+  background: #fff;
+  color: var(--teal);
+  border: 1px solid var(--teal);
+  border-radius: 999px;
+  padding: 0.45rem 0.9rem;
+  cursor: pointer;
+}
+.example-btn:hover {
+  background: var(--teal);
+  color: #fff;
 }
 .table-wrap { overflow-x: auto; }
 table {

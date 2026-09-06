@@ -3,36 +3,34 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Affordable Medication Sourcing Copilot</title>
+    <title>RxBridge: Affordable Medication Copilot</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <header class="masthead">
       <div class="wrap">
-        <p class="kicker">2026 FPL · AB generics · PAP export</p>
-        <h1>Affordable Medication Sourcing Copilot</h1>
+        <p class="kicker">Prescription Savings, Made Simple</p>
+        <h1>RxBridge: Affordable Medication Copilot</h1>
         <p class="lede">
-          Ask the copilot to compare cash prices against FDA AB-rated generics,
-          score household income on the 2026 HHS poverty guidelines, and match
-          manufacturer patient assistance programs. When a program fits, generate
-          the application PDF from the same workspace.
+          Find lower-cost generic alternatives and apply for free manufacturer
+          assistance programs in seconds.
         </p>
       </div>
     </header>
 
     <main class="wrap layout">
       <section class="card">
-        <h2>Build the application</h2>
+        <h2>Manufacturer Financial Aid / Free Medicine Application</h2>
         <p class="hint">
-          Choose a seeded program and covered drug, then enter the household
-          figures used for the FPL screen. The file never touches disk on the
-          server — it streams straight to the browser.
+          Fill in your details below and we'll prepare your free application for
+          you. Nothing is saved on our server — your file goes straight from us
+          to your browser.
         </p>
 
         <form id="app-form" novalidate>
           <div class="grid">
             <label>
-              Patient full name
+              Your full name
               <input id="patient_name" name="patient_name" required placeholder="Maria Chen" />
             </label>
             <label>
@@ -40,13 +38,13 @@
               <select id="state" name="state" required></select>
             </label>
             <label>
-              Assistance program
+              Aid program
               <select id="program_name" name="program_name" required>
                 <option value="">Loading programs…</option>
               </select>
             </label>
             <label>
-              Requested medication
+              Medication needed
               <select id="medication_name" name="medication_name" required>
                 <option value="">Select a program first</option>
               </select>
@@ -63,44 +61,46 @@
 
           <label class="check">
             <input id="is_uninsured" name="is_uninsured" type="checkbox" checked />
-            Patient is uninsured
+            I don't have insurance
           </label>
 
           <div class="actions">
-            <button type="submit" id="submit-btn">Generate application PDF</button>
+            <button type="submit" id="submit-btn">Download My Free Application</button>
             <p id="status" class="status" role="status"></p>
           </div>
         </form>
 
         <div id="pdf-frame-wrap" class="pdf-frame-wrap" hidden>
-          <h3>Generated packet</h3>
-          <iframe id="pdf-frame" title="Assistance application PDF preview"></iframe>
+          <h3>Your application is ready!</h3>
+          <iframe id="pdf-frame" title="Free medication assistance application preview"></iframe>
         </div>
       </section>
 
       <aside class="stack">
         <section class="card preview" id="eligibility-card">
-          <h2>Live FPL screen</h2>
+          <h2>Financial Aid Eligibility Status</h2>
+          <p class="subtitle">Based on Federal Poverty Guidelines used by aid programs</p>
           <p class="hint">
-            2026 HHS poverty guideline for the selected state and household.
-            Most manufacturer PAPs cap eligibility at 400% FPL (GSK For You uses 300%).
+            This compares your income to the guidelines most manufacturer aid
+            programs use. Most accept incomes up to 400% of the poverty line
+            (GSK For You accepts up to 300%).
           </p>
           <dl id="eligibility">
-            <div><dt>100% FPL</dt><dd id="fpl-base">—</dd></div>
-            <div><dt>Income as % of FPL</dt><dd id="fpl-pct">—</dd></div>
-            <div><dt>Program ceiling</dt><dd id="fpl-cap">—</dd></div>
-            <div><dt>Determination</dt><dd id="fpl-verdict">Enter income to calculate</dd></div>
+            <div><dt>Federal Poverty Line</dt><dd id="fpl-base">—</dd></div>
+            <div><dt>Your income level</dt><dd id="fpl-pct">—</dd></div>
+            <div><dt>Program income limit</dt><dd id="fpl-cap">—</dd></div>
+            <div><dt>Are you likely eligible?</dt><dd id="fpl-verdict">Enter your income to check</dd></div>
           </dl>
         </section>
 
         <section class="card">
-          <h2>What the PDF includes</h2>
+          <h2>What's in your application</h2>
           <ul class="sections">
-            <li><strong>A.</strong> Patient name, address/state, household, income, FPL %, insurance</li>
-            <li><strong>B.</strong> Medication, strength, prescriber attestation</li>
-            <li><strong>C.</strong> Verified criteria, including the calculated FPL threshold</li>
-            <li><strong>D.</strong> Required attachments (1040/W-2, Medicaid denial, script)</li>
-            <li><strong>E.</strong> Patient and physician signature lines</li>
+            <li><strong>1.</strong> Your name, state, household size, income, and insurance status</li>
+            <li><strong>2.</strong> Your medication, strength, and a spot for your doctor to sign</li>
+            <li><strong>3.</strong> Proof you qualify, based on the federal poverty guideline</li>
+            <li><strong>4.</strong> A checklist of documents to attach (tax form, insurance denial, prescription)</li>
+            <li><strong>5.</strong> Signature lines for you and your doctor</li>
           </ul>
         </section>
       </aside>
@@ -108,14 +108,26 @@
 
     <section class="wrap copilot-panel">
       <div class="card">
-        <h2>Sourcing copilot</h2>
+        <h2>💬 Ask RxBridge About Your Medication</h2>
         <p class="hint">
-          Describe the drug and household. The LangGraph agent calls the savings
-          and 2026 FPL tools, then writes a plan that only cites those tool figures.
+          Tell us about your medication and household. We'll compare cheaper
+          generic options and check if you qualify for free manufacturer aid —
+          instantly, and in plain English.
         </p>
+
+        <div class="example-scenarios">
+          <p class="example-label">Or try an example:</p>
+          <button type="button" class="example-btn" data-example="humira">
+            Humira (Family of 2, $32k/yr income, uninsured)
+          </button>
+          <button type="button" class="example-btn" data-example="eliquis">
+            Eliquis (Single, $28k/yr income, Medicare)
+          </button>
+        </div>
+
         <form id="triage-form" novalidate>
           <label>
-            Patient situation
+            Tell us what's going on
             <textarea
               id="triage_query"
               name="triage_query"
@@ -139,31 +151,40 @@
             </label>
             <label class="check">
               <input id="triage_uninsured" name="triage_uninsured" type="checkbox" checked />
-              Uninsured
+              I don't have insurance
             </label>
             <label class="check">
               <input id="triage_medicare" name="triage_medicare" type="checkbox" />
-              Medicare
+              I'm on Medicare
             </label>
           </div>
           <div class="actions">
-            <button type="submit" id="triage-btn">Run sourcing triage</button>
+            <button type="submit" id="triage-btn">Check My Options</button>
             <p id="triage-status" class="status" role="status"></p>
           </div>
         </form>
-        <div id="triage-empty" class="empty-state">No triage yet. Ask about a seeded drug such as Humira, Januvia, or Nucala.</div>
+
+        <div id="triage-empty" class="empty-state">
+          No results yet. Describe a medication like Humira, Januvia, or Nucala
+          above, or click an example to get started.
+        </div>
         <div id="triage-error" class="error-banner" hidden></div>
+        <div id="triage-savings-banner" class="savings-banner" hidden></div>
         <pre id="triage-plan" class="plan" hidden></pre>
         <div id="triage-alts" class="alts" hidden>
-          <h3>AB-rated alternatives</h3>
+          <h3>FDA-Approved Generic Equivalents</h3>
+          <p class="hint small">
+            These have the same active medicine as your brand-name drug, just at
+            a lower cash price.
+          </p>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Product</th>
-                  <th>TE</th>
+                  <th>Generic match</th>
                   <th>Cash price</th>
-                  <th>Savings</th>
+                  <th>You could save</th>
                 </tr>
               </thead>
               <tbody id="triage-alts-body"></tbody>
@@ -175,9 +196,9 @@
 
     <footer class="wrap foot">
       <p>
-        Packet is a structured application generated from program data. It is not
-        a manufacturer’s copyrighted original. Confirm any program-specific addenda
-        before mailing.
+        Your application is a structured document generated from program data.
+        It is not a manufacturer's copyrighted original. Please confirm any
+        program-specific requirements before mailing.
       </p>
     </footer>
     <script src="/static/app.js"></script>

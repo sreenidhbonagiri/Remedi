@@ -78,12 +78,12 @@ function refreshEligibility() {
     return;
   }
   const pct = Math.round((income / guideline) * 1000) / 10;
-  pctEl.textContent = `${pct}% FPL`;
+  pctEl.textContent = `${pct}% of the poverty line`;
   if (pct <= cap) {
-    verdict.textContent = `Meets ≤ ${cap}% threshold`;
+    verdict.textContent = `Yes — you're within the ${cap}% limit`;
     verdict.className = "pass";
   } else {
-    verdict.textContent = `Exceeds ${cap}% program limit`;
+    verdict.textContent = `Likely not — this exceeds the ${cap}% limit`;
     verdict.className = "fail";
   }
 }
@@ -168,7 +168,7 @@ document.getElementById("app-form").addEventListener("submit", async (event) => 
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setStatus("Application PDF ready — preview below and downloaded.");
+    setStatus("Your free application is ready — preview below, and it's downloaded too.");
   } catch (err) {
     setStatus(err.message, true);
   } finally {
@@ -200,6 +200,43 @@ function moneyCash(n) {
   return Number(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
+const GENERIC_MATCH_LABEL = "✅ FDA-Approved Generic Equivalent (Same active medicine)";
+
+const EXAMPLE_SCENARIOS = {
+  humira: {
+    query:
+      "I take Humira, and my family of 2 earns about $32,000 a year. We don't have insurance.",
+    income: 32000,
+    household: 2,
+    state: "PA",
+    uninsured: true,
+    medicare: false,
+  },
+  eliquis: {
+    query: "I take Eliquis. I'm on Medicare and my income is about $28,000 a year.",
+    income: 28000,
+    household: 1,
+    state: "PA",
+    uninsured: false,
+    medicare: true,
+  },
+};
+
+document.querySelectorAll(".example-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const example = EXAMPLE_SCENARIOS[btn.dataset.example];
+    if (!example) return;
+    document.getElementById("triage_query").value = example.query;
+    document.getElementById("triage_income").value = example.income;
+    document.getElementById("triage_household").value = example.household;
+    const triageStateSelect = document.getElementById("triage_state");
+    if (triageStateSelect) triageStateSelect.value = example.state;
+    document.getElementById("triage_uninsured").checked = example.uninsured;
+    document.getElementById("triage_medicare").checked = example.medicare;
+    setTriageStatus("Example filled in — click \u201cCheck My Options\u201d whenever you're ready.");
+  });
+});
+
 document.getElementById("triage-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const btn = document.getElementById("triage-btn");
@@ -207,9 +244,11 @@ document.getElementById("triage-form").addEventListener("submit", async (event) 
   const errorEl = document.getElementById("triage-error");
   const planEl = document.getElementById("triage-plan");
   const altsWrap = document.getElementById("triage-alts");
+  const banner = document.getElementById("triage-savings-banner");
   btn.disabled = true;
   errorEl.hidden = true;
-  setTriageStatus("Running triage…");
+  banner.hidden = true;
+  setTriageStatus("Checking your options…");
   const incomeRaw = document.getElementById("triage_income").value;
   const body = {
     query: document.getElementById("triage_query").value.trim(),
@@ -238,7 +277,7 @@ document.getElementById("triage-form").addEventListener("submit", async (event) 
     const payload = await res.json();
     empty.hidden = true;
     planEl.hidden = false;
-    planEl.textContent = payload.action_plan || "The agent returned an empty plan.";
+    planEl.textContent = payload.action_plan || "We couldn't put together a plan this time — please try again.";
     const alts = (payload.savings && payload.savings.alternatives) || [];
     const tbody = document.getElementById("triage-alts-body");
     tbody.innerHTML = "";
@@ -251,18 +290,25 @@ document.getElementById("triage-form").addEventListener("submit", async (event) 
         const save =
           alt.savings_percent == null
             ? "—"
-            : `${moneyCash(alt.savings_amount)} (${alt.savings_percent}%)`;
-        tr.innerHTML = `<td>${alt.name}</td><td>${alt.te_code || "—"}</td><td>${moneyCash(alt.cash_price)}</td><td>${save}</td>`;
+            : `${moneyCash(alt.savings_amount)} (${alt.savings_percent}% off)`;
+        const genericMatch = alt.te_code ? GENERIC_MATCH_LABEL : "—";
+        tr.innerHTML = `<td>${alt.name}</td><td>${genericMatch}</td><td>${moneyCash(alt.cash_price)}</td><td>${save}</td>`;
         tbody.appendChild(tr);
       });
+      const top = alts[0];
+      if (top && top.savings_amount != null && top.savings_percent != null) {
+        banner.hidden = false;
+        banner.textContent = `You could save ${moneyCash(top.savings_amount)} (${top.savings_percent}% off) by asking about ${top.name}.`;
+      }
     }
-    setTriageStatus("Triage complete. Figures are copied from the savings and FPL tools.");
+    setTriageStatus("Here's what we found — every number below comes from real pricing and eligibility data.");
   } catch (err) {
     empty.hidden = true;
     planEl.hidden = true;
     altsWrap.hidden = true;
+    banner.hidden = true;
     errorEl.hidden = false;
-    errorEl.textContent = err.message || "Triage failed.";
+    errorEl.textContent = err.message || "We couldn't check your options this time — please try again.";
     setTriageStatus(err.message, true);
   } finally {
     btn.disabled = false;

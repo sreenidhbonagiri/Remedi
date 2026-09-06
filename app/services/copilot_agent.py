@@ -208,84 +208,130 @@ def _money(value: float | int | None) -> str:
 
 
 def _synthesize_from_tools(state: AgentState) -> str:
+    """Deterministic, patient-friendly fallback used whenever no LLM key is set.
+
+    Every dollar figure and percentage below is read straight out of the tool
+    JSON (never recomputed), which keeps the "Behind the numbers" footer and
+    the narrative text consistent for the strict numeric guardrail.
+    """
     tools = state.get("tool_results") or {}
     fpl = _loads(tools.get("evaluate_federal_poverty_level"))
     savings = _loads(tools.get("find_medication_savings"))
-    medication = state.get("medication_query") or savings.get("matched_medication") or "not identified"
+    medication = state.get("medication_query") or savings.get("matched_medication") or "your medication"
 
     lines = [
-        "AFFORDABLE MEDICATION SOURCING PLAN",
-        "All dollar amounts, FPL percentages, and eligibility caps below are copied from tool JSON.",
+        f"Your Personalized Plan for {medication}",
+        "Here's what we found for you, in plain English — every number below comes",
+        "straight from our pricing and eligibility lookup, nothing is guessed.",
         "",
-        f"Medication: {medication}",
+        "1) What You're Paying",
     ]
 
-    if fpl:
-        lines.extend(
-            [
-                (
-                    f"2026 FPL: household of {fpl['household_size']} in {fpl['state']} "
-                    f"has a 100% guideline of {_money(fpl['guideline'])}."
-                ),
-                (
-                    f"Reported income {_money(fpl['annual_income'])} is {fpl['fpl_percent']}% FPL "
-                    f"(tool field fpl_percent)."
-                ),
-                (
-                    f"Standard 400% cap from the FPL tool is {_money(fpl['limit_amount'])} "
-                    f"(limit_percent={fpl['limit_percent']}; meets_threshold={fpl['meets_threshold']})."
-                ),
-            ]
+    brand_price = savings.get("brand_cash_price")
+    if brand_price is not None:
+        lines.append(f"Right now, {medication} typically costs {_money(brand_price)} in cash price.")
+    else:
+        lines.append(
+            f"We don't have a cash price on file yet for {medication}, so we can't compare it below."
+        )
+
+    lines.extend(["", "2) Option 1: Ask Your Doctor About an Equivalent Generic"])
+    alternatives = savings.get("alternatives") or []
+    if alternatives:
+        alt = alternatives[0]
+        alt_name = alt.get("name")
+        te_code = alt.get("te_code")
+        alt_price = alt.get("cash_price")
+        savings_amount = alt.get("savings_amount")
+        savings_percent = alt.get("savings_percent")
+        lines.append(
+            (
+                f"Good news — {alt_name} is an FDA-Approved Generic Equivalent (same active "
+                f"medicine, FDA rating {te_code}). It typically costs {_money(alt_price)} instead "
+                f"of {_money(brand_price)}."
+            )
+        )
+        if savings_amount is not None and savings_percent is not None:
+            lines.append(
+                f"That could put {_money(savings_amount)} back in your pocket — about ({savings_percent}%) off."
+            )
+        lines.append(
+            f'Try asking: "Is {alt_name} a safe generic option for me instead of {medication}?"'
         )
     else:
-        lines.append("2026 FPL: income and household size were not available, so the FPL tool was not run.")
+        lines.append(
+            "We don't have a lower-cost generic on file for this medication yet — ask your "
+            "pharmacist if one is available."
+        )
 
-    lines.extend(["", "AB-rated generic alternatives (from find_medication_savings):"])
-    alternatives = savings.get("alternatives") or []
-    if not alternatives:
-        notes = savings.get("notes") or ["No AB-rated alternatives were returned by the savings tool."]
-        lines.append(f"- {notes[0]}")
-    else:
-        brand_price = savings.get("brand_cash_price")
-        for alt in alternatives:
-            lines.append(
-                (
-                    f"- {alt.get('name')} (TE {alt.get('te_code')}): cash {_money(alt.get('cash_price'))} "
-                    f"versus brand {_money(alt.get('brand_cash_price', brand_price))}; "
-                    f"save {_money(alt.get('savings_amount'))} ({alt.get('savings_percent')}%)."
-                )
+    lines.extend(["", "3) Option 2: Manufacturer Aid (Free Medication)"])
+    if fpl:
+        lines.append(
+            (
+                f"Based on the Federal Poverty Guidelines, your household income works out to "
+                f"{fpl['fpl_percent']}% FPL (Federal Poverty Level) — that's the number aid "
+                f"programs use to decide who qualifies."
             )
+        )
+    else:
+        lines.append(
+            "Add your income and household size above and we'll check exactly what you qualify for."
+        )
 
-    lines.extend(["", "Patient assistance programs (from find_medication_savings):"])
     programs = savings.get("eligible_programs") or []
     if not programs:
-        lines.append("- No PAP matches were returned by the savings tool.")
+        lines.append("We don't have a manufacturer aid program on file for this medication yet.")
     else:
         for program in programs:
             flag = program.get("eligible")
+            cap = program.get("fpl_limit_percent")
+            name = program.get("name")
+            manufacturer = program.get("manufacturer")
+            phone = program.get("phone")
             if flag is True:
-                status = "ELIGIBLE"
-            elif flag is False:
-                status = "NOT ELIGIBLE"
-            else:
-                status = "UNSCORED"
-            lines.append(
-                (
-                    f"- {program.get('name')} ({program.get('manufacturer')}): {status} "
-                    f"at cap {program.get('fpl_limit_percent')}% FPL. "
-                    f"{program.get('reason')} Phone: {program.get('phone')}."
+                lines.append(
+                    (
+                        f"✅ Status: ELIGIBLE — {name} ({manufacturer}) accepts households up to "
+                        f"{cap}% FPL, and yours qualifies. Scroll down to download your pre-filled "
+                        f"application, or call {phone} with questions."
+                    )
                 )
-            )
+            elif flag is False:
+                lines.append(
+                    (
+                        f"Status: NOT ELIGIBLE right now — {name} accepts households up to {cap}% "
+                        f"FPL. {program.get('reason')}"
+                    )
+                )
+            else:
+                lines.append(
+                    (
+                        f"Status: UNSCORED — add your income and household size so we can check "
+                        f"{name}'s {cap}% FPL limit for you."
+                    )
+                )
 
     lines.extend(
         [
             "",
-            "Next steps",
-            "1. Confirm the AB-rated alternative with the prescriber before switching.",
-            "2. If a PAP is ELIGIBLE, generate the application PDF from this copilot.",
-            "3. Do not rely on numbers that are not present in the tool JSON above.",
+            "What to do next",
+            "• Bring the generic option above to your next doctor or pharmacist visit.",
+            "• If you're ELIGIBLE for aid, download your free application PDF below.",
+            "• Every figure here comes straight from our pricing and eligibility tools.",
         ]
     )
+
+    if fpl:
+        lines.extend(
+            [
+                "",
+                (
+                    "Behind the numbers: fpl_percent="
+                    f"{fpl['fpl_percent']}, limit_percent={fpl['limit_percent']}, "
+                    f"guideline={_money(fpl['guideline'])}, meets_threshold={fpl['meets_threshold']}."
+                ),
+            ]
+        )
     return "\n".join(lines)
 
 
@@ -306,7 +352,18 @@ def _llm_synthesize(state: AgentState) -> str | None:
                 {
                     "role": "system",
                     "content": (
-                        "You are an Affordable Medication Sourcing Copilot. "
+                        "You are RxBridge, a warm and encouraging Affordable Medication Copilot "
+                        "that talks to everyday patients, not clinicians. Avoid jargon: never say "
+                        "'TE code' or 'AB-rated' without immediately explaining it means 'FDA-Approved "
+                        "Generic Equivalent (same active medicine)'; call the poverty guideline check "
+                        "'Financial Aid Eligibility Status'; call program applications 'Manufacturer "
+                        "Financial Aid / Free Medicine Application'. Structure your answer in three "
+                        "short sections: 1) What You're Paying, 2) Option 1: Ask Your Doctor About an "
+                        "Equivalent Generic (state the dollar savings, the percent off, and a simple "
+                        "question the patient can ask their doctor or pharmacist), and 3) Option 2: "
+                        "Manufacturer Aid (Free Medication) (explain in plain English why their income "
+                        "does or doesn't qualify, and tell them to download the pre-filled PDF below if "
+                        "eligible). "
                         "STRICT GUARDRAIL: every number you cite (cash prices, savings "
                         "percentages, FPL percentages, eligibility caps, phone numbers) MUST "
                         "appear verbatim in the tool JSON. Never invent, recompute, or round "
@@ -318,7 +375,7 @@ def _llm_synthesize(state: AgentState) -> str | None:
                     "content": (
                         f"Patient query: {state.get('query')}\n\n"
                         f"Tool JSON:\n{tool_json}\n\n"
-                        "Write a concise action plan that cites only those tool values."
+                        "Write a warm, easy-to-read plan for the patient that cites only those tool values."
                     ),
                 },
             ]
