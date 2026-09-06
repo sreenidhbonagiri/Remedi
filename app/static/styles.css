@@ -390,13 +390,13 @@ body {
 }
 
 /* ---------- Editorial narrative section (single soft panel, no cards) ---------- */
-.narrative { padding: 5rem 0; text-align: left; }
-.narrative .section-eyebrow { text-align: left; }
+.narrative { padding: 5rem 0; text-align: center; }
+.narrative .section-eyebrow { text-align: center; }
 .narrative-heading {
   font-size: 1.9rem;
   font-weight: 800;
   line-height: 1.3;
-  margin: 0 0 2rem;
+  margin: 0 auto 2rem;
   color: var(--ink);
   letter-spacing: -0.01em;
   max-width: 40rem;
@@ -405,8 +405,11 @@ body {
   background: var(--panel-bg);
   border-radius: var(--radius-lg);
   padding: 2.4rem 2.6rem;
+  margin: 0 auto;
+  max-width: 44rem;
   display: flex;
   flex-direction: column;
+  align-items: center;
   gap: 1.3rem;
 }
 .narrative-panel p {
@@ -414,7 +417,8 @@ body {
   color: var(--ink-soft);
   font-size: 1rem;
   line-height: 1.7;
-  max-width: 42rem;
+  text-align: center;
+  max-width: 40rem;
 }
 
 /* ---------- Steps (01, 02, 03) ---------- */
