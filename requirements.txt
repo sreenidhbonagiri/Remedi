@@ -9,3 +9,6 @@ jinja2>=3.1.4
 python-multipart>=0.0.17
 httpx>=0.28.0
 pytest>=8.3.0
+langchain-core>=0.3.0
+langgraph>=0.2.55
+langchain-openai>=0.2.0

@@ -3,19 +3,19 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Patient Assistance Copilot — Application Generator</title>
+    <title>Affordable Medication Sourcing Copilot</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
     <header class="masthead">
       <div class="wrap">
-        <p class="kicker">Phase 5 · Export Service</p>
-        <h1>Patient Assistance Copilot</h1>
+        <p class="kicker">2026 FPL · AB generics · PAP export</p>
+        <h1>Affordable Medication Sourcing Copilot</h1>
         <p class="lede">
-          Generate a manufacturer Patient Assistance Program application as a
-          downloadable PDF. Eligibility is scored against the 2026 HHS Federal
-          Poverty Guidelines, then packed into an official-format packet you can
-          print and submit.
+          Ask the copilot to compare cash prices against FDA AB-rated generics,
+          score household income on the 2026 HHS poverty guidelines, and match
+          manufacturer patient assistance programs. When a program fits, generate
+          the application PDF from the same workspace.
         </p>
       </div>
     </header>
@@ -105,6 +105,73 @@
         </section>
       </aside>
     </main>
+
+    <section class="wrap copilot-panel">
+      <div class="card">
+        <h2>Sourcing copilot</h2>
+        <p class="hint">
+          Describe the drug and household. The LangGraph agent calls the savings
+          and 2026 FPL tools, then writes a plan that only cites those tool figures.
+        </p>
+        <form id="triage-form" novalidate>
+          <label>
+            Patient situation
+            <textarea
+              id="triage_query"
+              name="triage_query"
+              required
+              rows="4"
+              placeholder="I take Humira, earn $35,000, household of 1 in PA, uninsured."
+            ></textarea>
+          </label>
+          <div class="grid">
+            <label>
+              Annual income (optional override)
+              <input id="triage_income" name="triage_income" type="number" min="0" step="1" placeholder="35000" />
+            </label>
+            <label>
+              Household size
+              <input id="triage_household" name="triage_household" type="number" min="1" max="20" value="1" />
+            </label>
+            <label>
+              State
+              <select id="triage_state" name="triage_state"></select>
+            </label>
+            <label class="check">
+              <input id="triage_uninsured" name="triage_uninsured" type="checkbox" checked />
+              Uninsured
+            </label>
+            <label class="check">
+              <input id="triage_medicare" name="triage_medicare" type="checkbox" />
+              Medicare
+            </label>
+          </div>
+          <div class="actions">
+            <button type="submit" id="triage-btn">Run sourcing triage</button>
+            <p id="triage-status" class="status" role="status"></p>
+          </div>
+        </form>
+        <div id="triage-empty" class="empty-state">No triage yet. Ask about a seeded drug such as Humira, Januvia, or Nucala.</div>
+        <div id="triage-error" class="error-banner" hidden></div>
+        <pre id="triage-plan" class="plan" hidden></pre>
+        <div id="triage-alts" class="alts" hidden>
+          <h3>AB-rated alternatives</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Product</th>
+                  <th>TE</th>
+                  <th>Cash price</th>
+                  <th>Savings</th>
+                </tr>
+              </thead>
+              <tbody id="triage-alts-body"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <footer class="wrap foot">
       <p>

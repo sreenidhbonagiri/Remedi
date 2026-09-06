@@ -1,8 +1,9 @@
-"""Copilot REST surface: program catalog and PDF application export."""
+"""Copilot REST surface: program catalog, PDF export, and agent triage."""
 
 from __future__ import annotations
 
 import io
+import json
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
@@ -12,7 +13,9 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.session import get_db
 from app.models.medication import Medication
 from app.models.program import Program
+from app.schemas.agent import AgentTriageRequest, AgentTriageResponse
 from app.schemas.application import ApplicationPDFRequest, ProgramOut
+from app.services.copilot_agent import run_copilot_agent
 from app.services.pdf_generator import generate_assistance_pdf
 
 router = APIRouter()
@@ -36,7 +39,39 @@ def _find_medication(db: Session, name: str, program_id: int | None = None) -> M
 
 @router.get("/programs", response_model=list[ProgramOut])
 def list_programs(db: Session = Depends(get_db)) -> list[Program]:
-    return db.query(Program).options(selectinload(Program.medications)).order_by(Program.name).all()
+    return (
+        db.query(Program)
+        .options(selectinload(Program.medications))
+        .filter(Program.is_pap.is_(True))
+        .order_by(Program.name)
+        .all()
+    )
+
+
+@router.post("/agent/triage", response_model=AgentTriageResponse)
+def triage_medication_request(
+    payload: AgentTriageRequest,
+    db: Session = Depends(get_db),
+) -> AgentTriageResponse:
+    result = run_copilot_agent(
+        db,
+        query=payload.query,
+        annual_income=payload.annual_income,
+        household_size=payload.household_size,
+        state=payload.state,
+        is_uninsured=payload.is_uninsured,
+        is_medicare=payload.is_medicare,
+    )
+    raw = result.get("tool_results") or {}
+    savings = json.loads(raw["find_medication_savings"]) if raw.get("find_medication_savings") else None
+    fpl = json.loads(raw["evaluate_federal_poverty_level"]) if raw.get("evaluate_federal_poverty_level") else None
+    return AgentTriageResponse(
+        action_plan=result.get("action_plan") or "",
+        medication_query=result.get("medication_query") or "",
+        visited_nodes=list(result.get("visited_nodes") or []),
+        savings=savings,
+        fpl=fpl,
+    )
 
 
 @router.post("/applications/generate-pdf")

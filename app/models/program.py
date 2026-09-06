@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from sqlalchemy import Float, String, Text
+from sqlalchemy import Boolean, Float, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import Base
@@ -21,5 +21,6 @@ class Program(Base):
     description: Mapped[str] = mapped_column(Text, default="")
     phone: Mapped[str] = mapped_column(String(32), default="")
     mailing_address: Mapped[str] = mapped_column(String(512), default="")
+    is_pap: Mapped[bool] = mapped_column(Boolean, default=True)
 
     medications: Mapped[list[Medication]] = relationship(back_populates="program")

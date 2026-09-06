@@ -177,3 +177,95 @@ document.getElementById("app-form").addEventListener("submit", async (event) => 
 });
 
 loadPrograms();
+
+const triageState = document.getElementById("triage_state");
+if (triageState) {
+  STATES.forEach((code) => {
+    const opt = document.createElement("option");
+    opt.value = code;
+    opt.textContent = code;
+    if (code === "PA") opt.selected = true;
+    triageState.appendChild(opt);
+  });
+}
+
+function setTriageStatus(message, isError = false) {
+  const el = document.getElementById("triage-status");
+  el.textContent = message;
+  el.className = "status " + (isError ? "error" : "ok");
+}
+
+function moneyCash(n) {
+  if (n == null || !Number.isFinite(Number(n))) return "—";
+  return Number(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
+}
+
+document.getElementById("triage-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const btn = document.getElementById("triage-btn");
+  const empty = document.getElementById("triage-empty");
+  const errorEl = document.getElementById("triage-error");
+  const planEl = document.getElementById("triage-plan");
+  const altsWrap = document.getElementById("triage-alts");
+  btn.disabled = true;
+  errorEl.hidden = true;
+  setTriageStatus("Running triage…");
+  const incomeRaw = document.getElementById("triage_income").value;
+  const body = {
+    query: document.getElementById("triage_query").value.trim(),
+    household_size: Number(document.getElementById("triage_household").value) || 1,
+    state: document.getElementById("triage_state").value,
+    is_uninsured: document.getElementById("triage_uninsured").checked,
+    is_medicare: document.getElementById("triage_medicare").checked,
+  };
+  if (incomeRaw !== "") body.annual_income = Number(incomeRaw);
+  try {
+    const res = await fetch("/api/v1/agent/triage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let detail = `Request failed (${res.status})`;
+      try {
+        const payload = await res.json();
+        detail = payload.detail || detail;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(detail);
+    }
+    const payload = await res.json();
+    empty.hidden = true;
+    planEl.hidden = false;
+    planEl.textContent = payload.action_plan || "The agent returned an empty plan.";
+    const alts = (payload.savings && payload.savings.alternatives) || [];
+    const tbody = document.getElementById("triage-alts-body");
+    tbody.innerHTML = "";
+    if (!alts.length) {
+      altsWrap.hidden = true;
+    } else {
+      altsWrap.hidden = false;
+      alts.forEach((alt) => {
+        const tr = document.createElement("tr");
+        const save =
+          alt.savings_percent == null
+            ? "—"
+            : `${moneyCash(alt.savings_amount)} (${alt.savings_percent}%)`;
+        tr.innerHTML = `<td>${alt.name}</td><td>${alt.te_code || "—"}</td><td>${moneyCash(alt.cash_price)}</td><td>${save}</td>`;
+        tbody.appendChild(tr);
+      });
+    }
+    setTriageStatus("Triage complete. Figures are copied from the savings and FPL tools.");
+  } catch (err) {
+    empty.hidden = true;
+    planEl.hidden = true;
+    altsWrap.hidden = true;
+    errorEl.hidden = false;
+    errorEl.textContent = err.message || "Triage failed.";
+    setTriageStatus(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+

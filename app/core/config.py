@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     database_url: str = "sqlite:///./pap_copilot.db"
     fpl_year: int = 2026
     default_fpl_limit_percent: float = 400.0
+    openai_api_key: str = ""
+    openai_model: str = "gpt-4o-mini"
 
 
 settings = Settings()

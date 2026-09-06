@@ -8,6 +8,7 @@ from fastapi.templating import Jinja2Templates
 
 from app.api.v1 import api_router
 from app.db.base import Base
+from app.db.migrate import apply_sqlite_additions
 from app.db.seed import seed_database
 from app.db.session import SessionLocal, engine
 
@@ -17,6 +18,7 @@ APP_DIR = Path(__file__).resolve().parent
 @asynccontextmanager
 async def lifespan(_application: FastAPI):
     Base.metadata.create_all(bind=engine)
+    apply_sqlite_additions(engine)
     db = SessionLocal()
     try:
         seed_database(db)
@@ -29,10 +31,10 @@ def create_app() -> FastAPI:
     application = FastAPI(
         title="Patient Assistance Copilot",
         description=(
-            "Phase 5 — generate official-format manufacturer Patient Assistance "
-            "Program applications as downloadable PDFs."
+            "Affordable Medication Sourcing Copilot — 2026 FPL screening, AB-rated "
+            "generic savings, LangGraph triage, and manufacturer PAP PDF export."
         ),
-        version="5.0.0",
+        version="6.0.0",
         lifespan=lifespan,
     )
     application.include_router(api_router, prefix="/api/v1")
