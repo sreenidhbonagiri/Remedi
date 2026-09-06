@@ -146,6 +146,47 @@
           <iframe id="pdf-frame" title="Free medication assistance application preview"></iframe>
         </div>
       </div>
+
+      <section id="chat-card" class="glass-card chat-card" hidden>
+        <div class="chat-header">
+          <span class="remy-bot remy-bot-sm" aria-hidden="true">
+            <svg viewBox="0 0 120 120" class="remy-bot-svg">
+              <rect x="18" y="22" width="84" height="78" rx="26" class="remy-head" />
+              <circle cx="36" cy="66" r="7" class="remy-cheek" />
+              <circle cx="84" cy="66" r="7" class="remy-cheek" />
+              <path d="M40 52 Q47 43 54 52" class="remy-eye" />
+              <path d="M66 52 Q73 43 80 52" class="remy-eye" />
+              <path d="M46 76 Q60 90 74 76" class="remy-mouth" />
+              <line x1="60" y1="22" x2="60" y2="6" class="remy-antenna-stem" />
+              <circle cx="60" cy="6" r="5" class="remy-antenna-dot" />
+            </svg>
+          </span>
+          <div>
+            <h3>Chat with Remy</h3>
+            <p class="chat-sub">Ask a follow-up — Remy will use the results above to answer.</p>
+          </div>
+        </div>
+
+        <div id="chat-messages" class="chat-messages">
+          <p class="chat-empty">
+            Ask Remy anything about your results — like what to tell your
+            doctor, what happens if your income changes, or how to submit
+            your form.
+          </p>
+        </div>
+        <p id="chat-typing" class="chat-typing" hidden>Remy is thinking…</p>
+
+        <form id="chat-form" class="chat-form" novalidate>
+          <input
+            id="chat_message"
+            name="chat_message"
+            type="text"
+            autocomplete="off"
+            placeholder="Ask Remy a follow-up question (e.g., 'What do I tell my pharmacist?' or 'What if my income changes?')..."
+          />
+          <button type="submit" id="chat-send-btn" class="btn btn-primary">Send</button>
+        </form>
+      </section>
     </main>
 
     <script src="/static/app.js"></script>

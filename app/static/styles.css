@@ -732,6 +732,82 @@ select option { background: #ffffff; color: var(--ink); }
   background: #f4f3f0;
 }
 
+/* ---------- Chat with Remy ---------- */
+.chat-card {
+  padding: 1.5rem 1.6rem;
+  animation: bubbleIn 0.5s ease both;
+}
+.chat-header {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  margin-bottom: 1.1rem;
+}
+.chat-header h3 { margin: 0 0 0.15rem; font-size: 1.05rem; color: var(--ink); }
+.chat-sub { margin: 0; color: var(--ink-soft); font-size: 0.88rem; }
+
+.chat-messages {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-height: 22rem;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+  margin-bottom: 0.8rem;
+}
+.chat-empty {
+  color: var(--ink-faint);
+  font-size: 0.9rem;
+  text-align: center;
+  padding: 0.6rem 0;
+}
+.chat-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+  animation: bubbleIn 0.35s ease both;
+}
+.chat-row.user { justify-content: flex-end; }
+.chat-row .remy-bot-sm { width: 32px; height: 32px; animation: none; }
+.chat-bubble {
+  max-width: 78%;
+  padding: 0.7rem 0.95rem;
+  border-radius: var(--radius-md);
+  font-size: 0.92rem;
+  line-height: 1.55;
+  white-space: pre-wrap;
+}
+.chat-row.remy .chat-bubble {
+  background: var(--bg);
+  border: 1px solid var(--border-soft);
+  color: var(--ink);
+  border-bottom-left-radius: 4px;
+}
+.chat-row.user .chat-bubble {
+  background: var(--blush);
+  border: 1px solid var(--blush-border);
+  color: var(--ink);
+  border-bottom-right-radius: 4px;
+}
+.chat-typing {
+  margin: 0 0 0.7rem;
+  color: var(--ink-faint);
+  font-size: 0.86rem;
+  font-style: italic;
+}
+.chat-form {
+  display: flex;
+  gap: 0.7rem;
+}
+.chat-form input {
+  flex: 1;
+  padding: 0.7rem 0.9rem;
+}
+.chat-form button {
+  padding: 0.7rem 1.3rem;
+  white-space: nowrap;
+}
+
 @media (max-width: 960px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .cards-grid { grid-template-columns: 1fr; }

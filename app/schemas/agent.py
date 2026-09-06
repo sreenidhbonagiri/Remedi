@@ -20,3 +20,20 @@ class AgentTriageResponse(BaseModel):
     visited_nodes: list[str] = Field(default_factory=list)
     savings: dict[str, Any] | None = None
     fpl: dict[str, Any] | None = None
+
+
+class ChatMessageRequest(BaseModel):
+    session_id: str = Field(..., min_length=1, examples=["a1b2c3"])
+    message: str = Field(..., min_length=1, examples=["What should I ask my doctor?"])
+    context: dict[str, Any] | None = Field(
+        None,
+        description=(
+            "Optional triage context (savings, fpl, medication_query) used to seed or "
+            "refresh this session's memory, typically the last /agent/triage response."
+        ),
+    )
+
+
+class ChatMessageResponse(BaseModel):
+    session_id: str
+    reply: str

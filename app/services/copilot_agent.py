@@ -489,3 +489,172 @@ def run_copilot_agent(
             "visited_nodes": [],
         }
     )
+
+
+# ---------------------------------------------------------------------------
+# Multi-turn follow-up chat
+#
+# Each session keeps a short message history plus the "context" (the last
+# triage's savings/fpl/medication_query tool output) so Remy can answer
+# follow-ups like "what should I ask my doctor?" without re-running triage.
+# This is an in-memory store: fine for a single-process dev/demo deployment,
+# and trivially swappable for Redis or a DB table later.
+# ---------------------------------------------------------------------------
+
+_CHAT_SESSIONS: dict[str, dict[str, Any]] = {}
+
+
+def _get_or_init_chat_session(session_id: str, context: dict[str, Any] | None) -> dict[str, Any]:
+    session = _CHAT_SESSIONS.setdefault(session_id, {"history": [], "context": {}})
+    if context:
+        session["context"] = {**session["context"], **context}
+    return session
+
+
+def _chat_llm_reply(message: str, session: dict[str, Any]) -> str | None:
+    if not llm_api_key():
+        return None
+    try:
+        from langchain_openai import ChatOpenAI
+
+        llm = ChatOpenAI(
+            model=getattr(settings, "openai_model", "gpt-4o-mini"),
+            api_key=llm_api_key(),
+            temperature=0,
+        )
+        context_json = json.dumps(session.get("context") or {}, indent=2)
+        messages: list[dict[str, str]] = [
+            {
+                "role": "system",
+                "content": (
+                    "You are Remy, a warm, encouraging follow-up assistant inside the Remedi "
+                    "medication savings copilot. The patient already ran a triage search; use the "
+                    "tool JSON context below to answer follow-up questions like 'what should I ask "
+                    "my doctor?', 'what if my income changes?', or 'how do I submit this PDF?'. "
+                    "STRICT GUARDRAIL: every dollar figure, percentage, or eligibility cap you cite "
+                    "must appear verbatim in the tool JSON context, or be a value you can no longer "
+                    "verify — in that case say so plainly and suggest re-running Remy with updated "
+                    "numbers instead of guessing. Never invent or round figures."
+                ),
+            },
+            {"role": "user", "content": f"Tool JSON context:\n{context_json}"},
+        ]
+        for turn in (session.get("history") or [])[-6:]:
+            messages.append(turn)
+        messages.append({"role": "user", "content": message})
+        response = llm.invoke(messages)
+        content = getattr(response, "content", "")
+        return str(content) if content else None
+    except Exception:
+        return None
+
+
+def _deterministic_chat_reply(db: Session, message: str, session: dict[str, Any]) -> str:
+    """Fallback used whenever no LLM key is set; keeps every cited number
+    sourced from stored tool JSON (or a freshly recomputed tool call).
+    """
+    context = session.get("context") or {}
+    savings = context.get("savings") or {}
+    fpl = context.get("fpl") or {}
+    medication = context.get("medication_query") or savings.get("matched_medication") or "your medication"
+    text = message.lower()
+
+    if not savings and not fpl:
+        return (
+            "I don't have your triage results yet — run a search above first (medication, income, "
+            "household size), and then I can answer follow-up questions using those exact numbers."
+        )
+
+    income_match = re.search(r"\$?\s*(\d{1,3}(?:,\d{3})+|\d{4,7})", message)
+    wants_income_change = bool(
+        re.search(r"income|earn|makes?|salary|lose|job|pay cut|change", text)
+    )
+    if income_match and wants_income_change:
+        new_income = float(income_match.group(1).replace(",", ""))
+        household_size = fpl.get("household_size") or 1
+        state_code = fpl.get("state") or "PA"
+        limit_percent = fpl.get("limit_percent", 400.0)
+        tools_by_name = {tool.name: tool for tool in build_agent_tools(db)}
+        raw = tools_by_name["evaluate_federal_poverty_level"].invoke(
+            {
+                "annual_income": new_income,
+                "household_size": household_size,
+                "state": state_code,
+                "limit_percent": limit_percent,
+            }
+        )
+        new_fpl = _loads(raw)
+        session["context"]["fpl"] = new_fpl
+        verdict = (
+            "you'd likely still qualify"
+            if new_fpl.get("meets_threshold")
+            else "you may no longer be within the typical limit"
+        )
+        return (
+            f"If your household income changes to {_money(new_income)} a year, that works out to "
+            f"{new_fpl.get('fpl_percent')}% of the federal poverty line for a household of "
+            f"{household_size} in {state_code} — {verdict} against the "
+            f"{new_fpl.get('limit_percent')}% cap most manufacturer programs use. Come back and "
+            "re-run Remy with your updated numbers any time to double-check a specific program's "
+            "exact cutoff."
+        )
+
+    if any(keyword in text for keyword in ("doctor", "pharmacist", "ask my", "tell my")):
+        alternatives = savings.get("alternatives") or []
+        alt = alternatives[0] if alternatives else None
+        if alt:
+            brand_price = alt.get("brand_cash_price") or savings.get("brand_cash_price")
+            return (
+                f'Good question — ask directly: "Is {alt.get("name")} a safe generic option for me '
+                f'instead of {medication}?" It has the exact same active ingredient (FDA rating '
+                f'{alt.get("te_code", "AB")}) and typically costs {_money(alt.get("cash_price"))} '
+                f"instead of {_money(brand_price)}."
+            )
+        return (
+            f"Ask your doctor or pharmacist directly: \"Is there an FDA-approved generic equivalent "
+            f"for {medication} that could lower my cost?\" We don't have one on file yet, so their "
+            "office may know of options we don't track."
+        )
+
+    if any(keyword in text for keyword in ("pdf", "submit", "mail", "download", "sign", "apply")):
+        programs = savings.get("eligible_programs") or []
+        eligible = next((program for program in programs if program.get("eligible") is True), None)
+        if eligible:
+            return (
+                f'Click "Download My Ready-to-Sign Form" above — it fills in {eligible.get("name")}\'s '
+                f"application with your details. Sign it, then mail it to the address on the form, "
+                f"or call {eligible.get('phone', 'the number on the form')} to ask about faxing or "
+                "submitting online instead."
+            )
+        return (
+            'Once Remy finds a program you\'re eligible for, a "Download My Ready-to-Sign Form" '
+            "button appears above so you can grab a pre-filled PDF, sign it, and mail or fax it in."
+        )
+
+    summary_parts = [f"Here's what I have on file for {medication}: "]
+    if fpl:
+        summary_parts.append(
+            f"your household is at {fpl.get('fpl_percent')}% of the poverty line "
+            f"(limit {fpl.get('limit_percent')}%). "
+        )
+    alternatives = savings.get("alternatives") or []
+    if alternatives:
+        summary_parts.append(f"The best generic option so far is {alternatives[0].get('name')}. ")
+    summary_parts.append(
+        'Ask me things like "What should I ask my doctor?" or "What if my income changes?" and '
+        "I'll use these exact numbers to help."
+    )
+    return "".join(summary_parts)
+
+
+def run_copilot_chat(
+    db: Session,
+    session_id: str,
+    message: str,
+    context: dict[str, Any] | None = None,
+) -> str:
+    session = _get_or_init_chat_session(session_id, context)
+    session["history"].append({"role": "user", "content": message})
+    reply = _chat_llm_reply(message, session) or _deterministic_chat_reply(db, message, session)
+    session["history"].append({"role": "assistant", "content": reply})
+    return reply

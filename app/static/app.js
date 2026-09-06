@@ -70,6 +70,45 @@ document.querySelectorAll(".example-btn").forEach((btn) => {
 // application download without asking the patient to re-enter everything.
 let applicationContext = null;
 
+// Follow-up chat: a random per-page-load session id, plus the triage context
+// (savings/fpl/medication_query) Remy needs to answer questions grounded in
+// real numbers instead of guessing.
+const chatSessionId =
+  (window.crypto && window.crypto.randomUUID && window.crypto.randomUUID()) ||
+  `session-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+let chatContext = null;
+let chatHasContext = false;
+
+function appendChatBubble(role, text) {
+  const messages = document.getElementById("chat-messages");
+  const empty = messages.querySelector(".chat-empty");
+  if (empty) empty.remove();
+  const row = document.createElement("div");
+  row.className = `chat-row ${role}`;
+  if (role === "remy") {
+    row.innerHTML = `
+      <span class="remy-bot remy-bot-sm" aria-hidden="true">
+        <svg viewBox="0 0 120 120" class="remy-bot-svg">
+          <rect x="18" y="22" width="84" height="78" rx="26" class="remy-head" />
+          <circle cx="36" cy="66" r="7" class="remy-cheek" />
+          <circle cx="84" cy="66" r="7" class="remy-cheek" />
+          <path d="M40 52 Q47 43 54 52" class="remy-eye" />
+          <path d="M66 52 Q73 43 80 52" class="remy-eye" />
+          <path d="M46 76 Q60 90 74 76" class="remy-mouth" />
+          <line x1="60" y1="22" x2="60" y2="6" class="remy-antenna-stem" />
+          <circle cx="60" cy="6" r="5" class="remy-antenna-dot" />
+        </svg>
+      </span>
+      <div class="chat-bubble"></div>
+    `;
+  } else {
+    row.innerHTML = `<div class="chat-bubble"></div>`;
+  }
+  row.querySelector(".chat-bubble").textContent = text;
+  messages.appendChild(row);
+  messages.scrollTop = messages.scrollHeight;
+}
+
 function renderPayingSection(medicationLabel, brandPrice) {
   const el = document.getElementById("result-paying");
   if (brandPrice != null) {
@@ -202,6 +241,14 @@ document.getElementById("triage-form").addEventListener("submit", async (event) 
       applicationCard.hidden = true;
     }
 
+    chatContext = {
+      savings,
+      fpl,
+      medication_query: medicationLabel,
+    };
+    chatHasContext = false;
+    document.getElementById("chat-card").hidden = false;
+
     setTriageStatus("Here's what Remy found — every number above comes from real pricing and eligibility data.");
   } catch (err) {
     empty.hidden = true;
@@ -275,5 +322,56 @@ document.getElementById("apply-form").addEventListener("submit", async (event) =
     setApplyStatus(err.message, true);
   } finally {
     btn.disabled = false;
+  }
+});
+
+document.getElementById("chat-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const input = document.getElementById("chat_message");
+  const sendBtn = document.getElementById("chat-send-btn");
+  const typing = document.getElementById("chat-typing");
+  const message = input.value.trim();
+  if (!message) return;
+
+  appendChatBubble("user", message);
+  input.value = "";
+  input.disabled = true;
+  sendBtn.disabled = true;
+  typing.hidden = false;
+
+  const body = { session_id: chatSessionId, message };
+  if (!chatHasContext && chatContext) {
+    body.context = chatContext;
+  }
+
+  try {
+    const res = await fetch("/api/v1/agent/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let detail = `Request failed (${res.status})`;
+      try {
+        const payload = await res.json();
+        detail = payload.detail || detail;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(detail);
+    }
+    const payload = await res.json();
+    chatHasContext = true;
+    appendChatBubble("remy", payload.reply);
+  } catch (err) {
+    appendChatBubble(
+      "remy",
+      `Sorry, I couldn't answer that just now (${err.message || "please try again"}).`
+    );
+  } finally {
+    typing.hidden = true;
+    input.disabled = false;
+    sendBtn.disabled = false;
+    input.focus();
   }
 });

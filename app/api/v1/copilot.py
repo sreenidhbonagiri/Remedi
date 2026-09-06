@@ -13,9 +13,14 @@ from sqlalchemy.orm import Session, selectinload
 from app.db.session import get_db
 from app.models.medication import Medication
 from app.models.program import Program
-from app.schemas.agent import AgentTriageRequest, AgentTriageResponse
+from app.schemas.agent import (
+    AgentTriageRequest,
+    AgentTriageResponse,
+    ChatMessageRequest,
+    ChatMessageResponse,
+)
 from app.schemas.application import ApplicationPDFRequest, ProgramOut
-from app.services.copilot_agent import run_copilot_agent
+from app.services.copilot_agent import run_copilot_agent, run_copilot_chat
 from app.services.pdf_generator import generate_assistance_pdf
 
 router = APIRouter()
@@ -72,6 +77,20 @@ def triage_medication_request(
         savings=savings,
         fpl=fpl,
     )
+
+
+@router.post("/agent/chat", response_model=ChatMessageResponse)
+def chat_with_remy(
+    payload: ChatMessageRequest,
+    db: Session = Depends(get_db),
+) -> ChatMessageResponse:
+    reply = run_copilot_chat(
+        db,
+        session_id=payload.session_id,
+        message=payload.message,
+        context=payload.context,
+    )
+    return ChatMessageResponse(session_id=payload.session_id, reply=reply)
 
 
 @router.post("/applications/generate-pdf")
