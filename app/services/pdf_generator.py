@@ -23,17 +23,20 @@ from reportlab.platypus import (
 
 from app.core import fpl as fpl_mod
 
-NAVY = colors.HexColor("#16324F")
-NAVY_MID = colors.HexColor("#1F4E79")
-TEAL = colors.HexColor("#1B7A6E")
-GOLD = colors.HexColor("#C4A35A")
-PAPER = colors.HexColor("#F7F4EC")
-RULE = colors.HexColor("#D7D0C3")
-INK = colors.HexColor("#1A1A1A")
-MUTED = colors.HexColor("#5C5C5C")
+# Remedi brand palette — matches app/static/styles.css so the generated PDF
+# feels like part of the same product, not a separate legal document.
+NAVY = colors.HexColor("#9F1239")  # crimson-deep — section banners, borders
+NAVY_MID = colors.HexColor("#BE123C")  # crimson — subtitle text, accents
+TEAL = colors.HexColor("#047857")  # forest — checkmarks, positive verifications
+GOLD = colors.HexColor("#F43F5E")  # rose — header/footer accent stripe
+PAPER = colors.HexColor("#FFF1F2")  # blush — field label backgrounds
+CREAM = colors.HexColor("#FDFCF9")  # warm cream canvas, matches site background
+RULE = colors.HexColor("#EAE7E1")  # hairline border
+INK = colors.HexColor("#1C1917")  # deep warm charcoal headings/body text
+MUTED = colors.HexColor("#52525B")  # warm slate secondary text
 WHITE = colors.white
-PASS_GREEN = colors.HexColor("#1F6B4A")
-FAIL_RED = colors.HexColor("#8C2F2F")
+PASS_GREEN = colors.HexColor("#047857")
+FAIL_RED = colors.HexColor("#BE123C")
 
 
 class CheckboxRow(Flowable):
@@ -90,6 +93,16 @@ class SignatureLine(Flowable):
 def _styles() -> dict[str, ParagraphStyle]:
     base = getSampleStyleSheet()
     return {
+        "brand": ParagraphStyle(
+            "Brand",
+            parent=base["Normal"],
+            fontName="Times-Bold",
+            fontSize=12,
+            leading=15,
+            textColor=NAVY_MID,
+            alignment=TA_CENTER,
+            spaceAfter=1,
+        ),
         "masthead": ParagraphStyle(
             "Masthead",
             parent=base["Normal"],
@@ -230,13 +243,16 @@ def _field_table(rows: list[tuple[str, str]], styles: dict[str, ParagraphStyle])
 def _header_footer(canvas, doc):
     canvas.saveState()
     width, height = letter
+    canvas.setFillColor(CREAM)
+    canvas.rect(0, 0, width, height, fill=1, stroke=0)
+
     canvas.setFillColor(NAVY)
     canvas.rect(0, height - 28, width, 28, fill=1, stroke=0)
     canvas.setFillColor(GOLD)
     canvas.rect(0, height - 31, width, 3, fill=1, stroke=0)
     canvas.setFillColor(WHITE)
     canvas.setFont("Times-Bold", 8)
-    canvas.drawString(0.65 * inch, height - 18, "PATIENT ASSISTANCE PROGRAM  ·  CONFIDENTIAL")
+    canvas.drawString(0.65 * inch, height - 18, "REMEDI  ·  PATIENT ASSISTANCE APPLICATION  ·  CONFIDENTIAL")
     canvas.drawRightString(width - 0.65 * inch, height - 18, "FORM PAP-2026-APP")
 
     canvas.setFillColor(NAVY)
@@ -248,7 +264,7 @@ def _header_footer(canvas, doc):
     canvas.drawString(
         0.65 * inch,
         12,
-        "Generated in-memory by Patient Assistance Copilot  ·  Submit with original manufacturer instructions",
+        "Generated in-memory by Remedi, the affordable medication copilot  ·  Submit with original manufacturer instructions",
     )
     canvas.drawRightString(width - 0.65 * inch, 12, f"Page {doc.page}")
     canvas.restoreState()
@@ -313,6 +329,7 @@ def generate_assistance_pdf(patient_data: dict, program_name: str, medication_na
     header_title = program_name
     if "assist" not in program_name.lower() and "assistance" not in program_name.lower():
         header_title = f"{program_name} Patient Assistance"
+    story.append(Paragraph("REMEDI  ✦  Affordable Medication Copilot", styles["brand"]))
     story.append(Paragraph(header_title, styles["masthead"]))
     story.append(
         Paragraph(
