@@ -134,3 +134,95 @@ def test_triage_endpoint_still_returns_full_payload(client: TestClient) -> None:
     assert "action_plan" in payload
     assert "savings" in payload
     assert "fpl" in payload
+
+
+def _context_from(payload: dict) -> dict:
+    return {
+        "savings": payload["savings"],
+        "fpl": payload["fpl"],
+        "medication_query": payload["medication_query"],
+    }
+
+
+@pytest.mark.parametrize("greeting", ["yo", "hi", "hey", "hello", "sup", "howdy"])
+def test_chat_casual_greeting_is_short_and_friendly(client: TestClient, greeting: str) -> None:
+    triage = client.post("/api/v1/agent/triage", json=_triage_payload())
+    payload = triage.json()
+
+    chat = client.post(
+        "/api/v1/agent/chat",
+        json={"session_id": f"s-greet-{greeting}", "message": greeting, "context": _context_from(payload)},
+    )
+    assert chat.status_code == 200
+    reply = chat.json()["reply"]
+    assert payload["medication_query"] in reply
+    # Greeting replies must not dump the raw poverty-line data block.
+    assert "Behind the numbers" not in reply
+    assert "fpl_percent" not in reply
+    assert len(reply) < 260
+
+
+def test_chat_generic_question_without_doctor_wording(client: TestClient) -> None:
+    triage = client.post("/api/v1/agent/triage", json=_triage_payload())
+    payload = triage.json()
+
+    chat = client.post(
+        "/api/v1/agent/chat",
+        json={
+            "session_id": "s-generic",
+            "message": "Is there a generic equivalent alternative to this brand?",
+            "context": _context_from(payload),
+        },
+    )
+    assert chat.status_code == 200
+    reply = chat.json()["reply"]
+    alt = payload["savings"]["alternatives"][0]
+    assert alt["name"] in reply
+    assert alt["te_code"] in reply
+
+
+def test_chat_income_question_without_number_uses_fpl_status(client: TestClient) -> None:
+    triage = client.post("/api/v1/agent/triage", json=_triage_payload())
+    payload = triage.json()
+
+    chat = client.post(
+        "/api/v1/agent/chat",
+        json={
+            "session_id": "s-afford",
+            "message": "Can I afford this given my poverty level and income?",
+            "context": _context_from(payload),
+        },
+    )
+    assert chat.status_code == 200
+    reply = chat.json()["reply"]
+    assert str(payload["fpl"]["fpl_percent"]) in reply
+    assert str(payload["fpl"]["limit_percent"]) in reply
+
+
+def test_chat_doctor_typo_still_routes_to_doctor_intent(client: TestClient) -> None:
+    triage = client.post("/api/v1/agent/triage", json=_triage_payload())
+    payload = triage.json()
+
+    chat = client.post(
+        "/api/v1/agent/chat",
+        json={"session_id": "s-typo", "message": "should i aska my doctr about this", "context": _context_from(payload)},
+    )
+    assert chat.status_code == 200
+    reply = chat.json()["reply"]
+    alt = payload["savings"]["alternatives"][0]
+    assert alt["name"] in reply
+
+
+def test_chat_unrecognized_message_returns_concise_clarification(client: TestClient) -> None:
+    triage = client.post("/api/v1/agent/triage", json=_triage_payload())
+    payload = triage.json()
+
+    chat = client.post(
+        "/api/v1/agent/chat",
+        json={"session_id": "s-typo-fallback", "message": "xqzflorp", "context": _context_from(payload)},
+    )
+    assert chat.status_code == 200
+    reply = chat.json()["reply"]
+    assert "Here's what I have on file" not in reply
+    assert "•" in reply
+    assert len(reply.splitlines()) <= 5

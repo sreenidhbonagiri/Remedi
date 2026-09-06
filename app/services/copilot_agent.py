@@ -9,6 +9,7 @@ string templates so tests and offline runs stay reliable.
 
 from __future__ import annotations
 
+import difflib
 import json
 import os
 import re
@@ -531,10 +532,14 @@ def _chat_llm_reply(message: str, session: dict[str, Any]) -> str | None:
                     "medication savings copilot. The patient already ran a triage search; use the "
                     "tool JSON context below to answer follow-up questions like 'what should I ask "
                     "my doctor?', 'what if my income changes?', or 'how do I submit this PDF?'. "
-                    "STRICT GUARDRAIL: every dollar figure, percentage, or eligibility cap you cite "
-                    "must appear verbatim in the tool JSON context, or be a value you can no longer "
-                    "verify — in that case say so plainly and suggest re-running Remy with updated "
-                    "numbers instead of guessing. Never invent or round figures."
+                    "If the patient just sends a casual greeting (e.g. 'hi', 'hey', 'yo'), reply with "
+                    "a short, friendly hello that mentions their medication on file instead of "
+                    "dumping the full poverty-line breakdown. If their message is unclear or a typo, "
+                    "ask them to rephrase and offer 2-4 example questions instead of repeating a full "
+                    "summary. STRICT GUARDRAIL: every dollar figure, percentage, or eligibility cap "
+                    "you cite must appear verbatim in the tool JSON context, or be a value you can no "
+                    "longer verify — in that case say so plainly and suggest re-running Remy with "
+                    "updated numbers instead of guessing. Never invent or round figures."
                 ),
             },
             {"role": "user", "content": f"Tool JSON context:\n{context_json}"},
@@ -549,6 +554,135 @@ def _chat_llm_reply(message: str, session: dict[str, Any]) -> str | None:
         return None
 
 
+_GREETING_WORDS = {"hi", "hey", "hello", "yo", "sup", "howdy", "hiya", "greetings", "morning", "evening"}
+_DOCTOR_WORDS = {"doctor", "physician", "prescriber", "pharmacist", "ask", "aska"}
+_GENERIC_WORDS = {"generic", "equivalent", "alternative", "brand", "substitute", "bioequivalent"}
+_INCOME_WORDS = {"income", "poverty", "fpl", "afford", "affordable", "cost", "salary", "earn", "money"}
+_PDF_WORDS = {"pdf", "submit", "mail", "download", "sign", "apply", "form", "application"}
+
+
+def _tokenize(text: str) -> list[str]:
+    return re.findall(r"[a-z']+", text.lower())
+
+
+def _fuzzy_intent_hit(tokens: list[str], vocabulary: set[str], cutoff: float = 0.8) -> bool:
+    """True if any token is an exact or near (typo-tolerant) match for the vocabulary.
+
+    Short tokens are skipped to avoid noisy matches (e.g. "a" vs "ask").
+    """
+    for token in tokens:
+        if len(token) < 3:
+            continue
+        if token in vocabulary:
+            return True
+        if difflib.get_close_matches(token, vocabulary, n=1, cutoff=cutoff):
+            return True
+    return False
+
+
+def _is_casual_greeting(tokens: list[str]) -> bool:
+    if not tokens or len(tokens) > 4:
+        return False
+    other_intents = _DOCTOR_WORDS | _GENERIC_WORDS | _INCOME_WORDS | _PDF_WORDS
+    if _fuzzy_intent_hit(tokens, other_intents):
+        return False
+    return _fuzzy_intent_hit(tokens, _GREETING_WORDS, cutoff=0.85)
+
+
+def _greeting_reply(medication: str, has_context: bool) -> str:
+    if has_context:
+        return (
+            f"Hey there! I'm still tracking {medication} for you. Ask me whether there's a cheaper "
+            "generic, whether you qualify for free medicine, or how to submit your form whenever "
+            "you're ready."
+        )
+    return (
+        "Hey! Run a search above with your medication, income, and household size, and I'll be "
+        "ready to help with follow-up questions."
+    )
+
+
+def _generic_alternative_reply(medication: str, savings: dict[str, Any]) -> str:
+    alternatives = savings.get("alternatives") or []
+    alt = alternatives[0] if alternatives else None
+    if not alt:
+        return (
+            f"We don't have a lower-cost generic on file for {medication} yet — ask your pharmacist "
+            "if one is available."
+        )
+    brand_price = alt.get("brand_cash_price") or savings.get("brand_cash_price")
+    savings_percent = alt.get("savings_percent")
+    percent_note = f", about {savings_percent}% less" if savings_percent is not None else ""
+    return (
+        f'Yes — {alt.get("name")} is an FDA-Approved Generic Equivalent for {medication} (FDA rating '
+        f'{alt.get("te_code", "AB")}) with the exact same active ingredient. It typically costs '
+        f"{_money(alt.get('cash_price'))} instead of {_money(brand_price)}{percent_note}."
+    )
+
+
+def _doctor_question_reply(medication: str, savings: dict[str, Any]) -> str:
+    alternatives = savings.get("alternatives") or []
+    alt = alternatives[0] if alternatives else None
+    if alt:
+        brand_price = alt.get("brand_cash_price") or savings.get("brand_cash_price")
+        return (
+            f'Good question — ask directly: "Is {alt.get("name")} a safe generic option for me '
+            f'instead of {medication}?" It has the exact same active ingredient (FDA rating '
+            f'{alt.get("te_code", "AB")}) and typically costs {_money(alt.get("cash_price"))} '
+            f"instead of {_money(brand_price)}."
+        )
+    return (
+        f"Ask your doctor or pharmacist directly: \"Is there an FDA-approved generic equivalent "
+        f"for {medication} that could lower my cost?\" We don't have one on file yet, so their "
+        "office may know of options we don't track."
+    )
+
+
+def _income_status_reply(medication: str, fpl: dict[str, Any]) -> str:
+    if not fpl:
+        return (
+            f"I don't have income details on file for {medication} yet — add your annual income "
+            "and household size above, or tell me a number here, and I'll check eligibility."
+        )
+    verdict = (
+        "you're within the typical income limit most manufacturer programs use"
+        if fpl.get("meets_threshold")
+        else "you're currently above the typical income limit most manufacturer programs use"
+    )
+    return (
+        f"Based on what's on file, your household is at {fpl.get('fpl_percent')}% of the federal "
+        f"poverty line for a household of {fpl.get('household_size')} in {fpl.get('state')} — "
+        f"{verdict} ({fpl.get('limit_percent')}% cap). Tell me a new income if you'd like me to "
+        "recheck this."
+    )
+
+
+def _pdf_submission_reply(savings: dict[str, Any]) -> str:
+    programs = savings.get("eligible_programs") or []
+    eligible = next((program for program in programs if program.get("eligible") is True), None)
+    if eligible:
+        return (
+            f'Click "Download My Ready-to-Sign Form" above — it fills in {eligible.get("name")}\'s '
+            f"application with your details. Sign it, then mail it to the address on the form, "
+            f"or call {eligible.get('phone', 'the number on the form')} to ask about faxing or "
+            "submitting online instead."
+        )
+    return (
+        'Once Remy finds a program you\'re eligible for, a "Download My Ready-to-Sign Form" '
+        "button appears above so you can grab a pre-filled PDF, sign it, and mail or fax it in."
+    )
+
+
+def _clarification_fallback(medication: str) -> str:
+    return (
+        "I didn't quite catch that — could you rephrase it? Here are a few things I can help with:\n"
+        f'• "Is there a generic for {medication}?"\n'
+        '• "Am I eligible for financial aid?"\n'
+        '• "What should I ask my doctor?"\n'
+        '• "How do I submit my form?"'
+    )
+
+
 def _deterministic_chat_reply(db: Session, message: str, session: dict[str, Any]) -> str:
     """Fallback used whenever no LLM key is set; keeps every cited number
     sourced from stored tool JSON (or a freshly recomputed tool call).
@@ -558,6 +692,10 @@ def _deterministic_chat_reply(db: Session, message: str, session: dict[str, Any]
     fpl = context.get("fpl") or {}
     medication = context.get("medication_query") or savings.get("matched_medication") or "your medication"
     text = message.lower()
+    tokens = _tokenize(message)
+
+    if _is_casual_greeting(tokens):
+        return _greeting_reply(medication, has_context=bool(savings or fpl))
 
     if not savings and not fpl:
         return (
@@ -566,8 +704,8 @@ def _deterministic_chat_reply(db: Session, message: str, session: dict[str, Any]
         )
 
     income_match = re.search(r"\$?\s*(\d{1,3}(?:,\d{3})+|\d{4,7})", message)
-    wants_income_change = bool(
-        re.search(r"income|earn|makes?|salary|lose|job|pay cut|change", text)
+    wants_income_change = _fuzzy_intent_hit(tokens, _INCOME_WORDS) or bool(
+        re.search(r"earn|makes?|lose|job|pay cut|change", text)
     )
     if income_match and wants_income_change:
         new_income = float(income_match.group(1).replace(",", ""))
@@ -599,52 +737,19 @@ def _deterministic_chat_reply(db: Session, message: str, session: dict[str, Any]
             "exact cutoff."
         )
 
-    if any(keyword in text for keyword in ("doctor", "pharmacist", "ask my", "tell my")):
-        alternatives = savings.get("alternatives") or []
-        alt = alternatives[0] if alternatives else None
-        if alt:
-            brand_price = alt.get("brand_cash_price") or savings.get("brand_cash_price")
-            return (
-                f'Good question — ask directly: "Is {alt.get("name")} a safe generic option for me '
-                f'instead of {medication}?" It has the exact same active ingredient (FDA rating '
-                f'{alt.get("te_code", "AB")}) and typically costs {_money(alt.get("cash_price"))} '
-                f"instead of {_money(brand_price)}."
-            )
-        return (
-            f"Ask your doctor or pharmacist directly: \"Is there an FDA-approved generic equivalent "
-            f"for {medication} that could lower my cost?\" We don't have one on file yet, so their "
-            "office may know of options we don't track."
-        )
+    if _fuzzy_intent_hit(tokens, _DOCTOR_WORDS) or "tell my" in text:
+        return _doctor_question_reply(medication, savings)
 
-    if any(keyword in text for keyword in ("pdf", "submit", "mail", "download", "sign", "apply")):
-        programs = savings.get("eligible_programs") or []
-        eligible = next((program for program in programs if program.get("eligible") is True), None)
-        if eligible:
-            return (
-                f'Click "Download My Ready-to-Sign Form" above — it fills in {eligible.get("name")}\'s '
-                f"application with your details. Sign it, then mail it to the address on the form, "
-                f"or call {eligible.get('phone', 'the number on the form')} to ask about faxing or "
-                "submitting online instead."
-            )
-        return (
-            'Once Remy finds a program you\'re eligible for, a "Download My Ready-to-Sign Form" '
-            "button appears above so you can grab a pre-filled PDF, sign it, and mail or fax it in."
-        )
+    if _fuzzy_intent_hit(tokens, _GENERIC_WORDS):
+        return _generic_alternative_reply(medication, savings)
 
-    summary_parts = [f"Here's what I have on file for {medication}: "]
-    if fpl:
-        summary_parts.append(
-            f"your household is at {fpl.get('fpl_percent')}% of the poverty line "
-            f"(limit {fpl.get('limit_percent')}%). "
-        )
-    alternatives = savings.get("alternatives") or []
-    if alternatives:
-        summary_parts.append(f"The best generic option so far is {alternatives[0].get('name')}. ")
-    summary_parts.append(
-        'Ask me things like "What should I ask my doctor?" or "What if my income changes?" and '
-        "I'll use these exact numbers to help."
-    )
-    return "".join(summary_parts)
+    if _fuzzy_intent_hit(tokens, _INCOME_WORDS):
+        return _income_status_reply(medication, fpl)
+
+    if _fuzzy_intent_hit(tokens, _PDF_WORDS):
+        return _pdf_submission_reply(savings)
+
+    return _clarification_fallback(medication)
 
 
 def run_copilot_chat(
