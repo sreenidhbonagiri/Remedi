@@ -11,7 +11,7 @@
 
 ---
 
-## Executive Summary
+## Summary
 
 Over **$5.4 billion** in manufacturer Patient Assistance Programs (PAPs) goes unclaimed every year due to high administrative barriers, opaque eligibility criteria, and cumbersome paperwork. At the same time, patients frequently absorb catastrophic out-of-pocket costs for brand-name drugs despite the availability of bioequivalent, therapeutically identical alternatives.
 
