@@ -1,142 +1,244 @@
-const FPL = {
-  contiguous: { bases: [15960, 21640, 27320, 33000, 38680, 44360, 50040, 55720], inc: 5680 },
-  AK: { bases: [19950, 27050, 34150, 41250, 48350, 55450, 62550, 69650], inc: 7100 },
-  HI: { bases: [18360, 24890, 31420, 37950, 44480, 51010, 57540, 64070], inc: 6530 },
-};
-
 const STATES = [
-  "AL","AK","AZ","AR","CA","CO","CT","DC","DE","FL","GA","HI","IA","ID","IL","IN","KS","KY",
-  "LA","MA","MD","ME","MI","MN","MO","MS","MT","NC","ND","NE","NH","NJ","NM","NV","NY","OH",
-  "OK","OR","PA","RI","SC","SD","TN","TX","UT","VA","VT","WA","WI","WV","WY",
+  "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DC", "DE", "FL", "GA", "HI", "IA", "ID", "IL", "IN", "KS", "KY",
+  "LA", "MA", "MD", "ME", "MI", "MN", "MO", "MS", "MT", "NC", "ND", "NE", "NH", "NJ", "NM", "NV", "NY", "OH",
+  "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VA", "VT", "WA", "WI", "WV", "WY",
 ];
 
-const stateSelect = document.getElementById("state");
-STATES.forEach((code) => {
-  const opt = document.createElement("option");
-  opt.value = code;
-  opt.textContent = code;
-  if (code === "IL") opt.selected = true;
-  stateSelect.appendChild(opt);
-});
-
-let programs = [];
-
-function regionFor(state) {
-  if (state === "AK") return "AK";
-  if (state === "HI") return "HI";
-  return "contiguous";
-}
-
-function povertyGuideline(size, state) {
-  const table = FPL[regionFor(state)];
-  const n = Math.max(1, Number(size) || 1);
-  if (n <= 8) return table.bases[n - 1];
-  return table.bases[7] + (n - 8) * table.inc;
-}
-
-function money(n) {
-  return n.toLocaleString("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 });
-}
-
-function selectedProgram() {
-  return programs.find((p) => p.name === document.getElementById("program_name").value);
-}
-
-function refreshMedications() {
-  const program = selectedProgram();
-  const medSelect = document.getElementById("medication_name");
-  medSelect.innerHTML = "";
-  if (!program) {
-    medSelect.innerHTML = '<option value="">Select a program first</option>';
-    return;
-  }
-  program.medications.forEach((med, i) => {
+const triageState = document.getElementById("triage_state");
+if (triageState) {
+  STATES.forEach((code) => {
     const opt = document.createElement("option");
-    opt.value = med.name;
-    opt.textContent = `${med.name} · ${med.strength}`;
-    if (i === 0) opt.selected = true;
-    medSelect.appendChild(opt);
+    opt.value = code;
+    opt.textContent = code;
+    if (code === "PA") opt.selected = true;
+    triageState.appendChild(opt);
   });
 }
 
-function refreshEligibility() {
-  const income = Number(document.getElementById("annual_income").value);
-  const size = Number(document.getElementById("household_size").value) || 1;
-  const state = document.getElementById("state").value;
-  const program = selectedProgram();
-  const cap = program ? program.fpl_limit_percent : 400;
-  const guideline = povertyGuideline(size, state);
-  document.getElementById("fpl-base").textContent = money(guideline);
-  document.getElementById("fpl-cap").textContent = `${cap}%  (${money(guideline * cap / 100)})`;
-
-  const verdict = document.getElementById("fpl-verdict");
-  const pctEl = document.getElementById("fpl-pct");
-  if (!Number.isFinite(income) || income < 0 || document.getElementById("annual_income").value === "") {
-    pctEl.textContent = "—";
-    verdict.textContent = "Enter income to calculate";
-    verdict.className = "";
-    return;
-  }
-  const pct = Math.round((income / guideline) * 1000) / 10;
-  pctEl.textContent = `${pct}% of the poverty line`;
-  if (pct <= cap) {
-    verdict.textContent = `Yes — you're within the ${cap}% limit`;
-    verdict.className = "pass";
-  } else {
-    verdict.textContent = `Likely not — this exceeds the ${cap}% limit`;
-    verdict.className = "fail";
-  }
+function moneyCash(n) {
+  if (n == null || !Number.isFinite(Number(n))) return "—";
+  return Number(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
 }
 
-async function loadPrograms() {
-  const select = document.getElementById("program_name");
-  try {
-    const res = await fetch("/api/v1/programs");
-    if (!res.ok) throw new Error("Could not load programs");
-    programs = await res.json();
-    select.innerHTML = "";
-    programs.forEach((program) => {
-      const opt = document.createElement("option");
-      opt.value = program.name;
-      opt.textContent = `${program.name} (${program.manufacturer})`;
-      select.appendChild(opt);
-    });
-    refreshMedications();
-    refreshEligibility();
-  } catch (err) {
-    select.innerHTML = '<option value="">Unable to load programs</option>';
-    setStatus(err.message, true);
-  }
-}
-
-function setStatus(message, isError = false) {
-  const el = document.getElementById("status");
+function setTriageStatus(message, isError = false) {
+  const el = document.getElementById("triage-status");
   el.textContent = message;
   el.className = "status " + (isError ? "error" : "ok");
 }
 
-document.getElementById("program_name").addEventListener("change", () => {
-  refreshMedications();
-  refreshEligibility();
-});
-["annual_income", "household_size", "state"].forEach((id) => {
-  document.getElementById(id).addEventListener("input", refreshEligibility);
-  document.getElementById(id).addEventListener("change", refreshEligibility);
+function setApplyStatus(message, isError = false) {
+  const el = document.getElementById("apply-status");
+  el.textContent = message;
+  el.className = "status " + (isError ? "error" : "ok");
+}
+
+const EXAMPLE_SCENARIOS = {
+  humira: {
+    query:
+      "I take Humira, and my family of 2 earns about $32,000 a year. We don't have insurance.",
+    income: 32000,
+    household: 2,
+    state: "PA",
+    uninsured: true,
+    medicare: false,
+  },
+  eliquis: {
+    query: "I take Eliquis. I'm on Medicare and my income is about $28,000 a year.",
+    income: 28000,
+    household: 1,
+    state: "PA",
+    uninsured: false,
+    medicare: true,
+  },
+};
+
+document.querySelectorAll(".example-btn").forEach((btn) => {
+  btn.addEventListener("click", () => {
+    const example = EXAMPLE_SCENARIOS[btn.dataset.example];
+    if (!example) return;
+    document.getElementById("triage_query").value = example.query;
+    document.getElementById("triage_income").value = example.income;
+    document.getElementById("triage_household").value = example.household;
+    if (triageState) triageState.value = example.state;
+    document.getElementById("triage_uninsured").checked = example.uninsured;
+    document.getElementById("triage_medicare").checked = example.medicare;
+    setTriageStatus("Example filled in — click \u201cAsk Remy\u201d whenever you're ready.");
+  });
 });
 
-document.getElementById("app-form").addEventListener("submit", async (event) => {
+// Populated after a successful triage response; used to pre-fill the free
+// application download without asking the patient to re-enter everything.
+let applicationContext = null;
+
+function renderPayingSection(medicationLabel, brandPrice) {
+  const el = document.getElementById("result-paying");
+  if (brandPrice != null) {
+    el.textContent = `Right now, ${medicationLabel} typically costs ${moneyCash(brandPrice)} in cash price.`;
+  } else {
+    el.textContent = `We don't have a cash price on file yet for ${medicationLabel}.`;
+  }
+}
+
+function renderGenericSection(medicationLabel, brandPrice, alternatives) {
+  const el = document.getElementById("result-generic");
+  const banner = document.getElementById("triage-savings-banner");
+  if (!alternatives.length) {
+    el.innerHTML =
+      "<p>We don't have a lower-cost generic on file for this medication yet — ask your pharmacist if one is available.</p>";
+    banner.hidden = true;
+    return;
+  }
+  const alt = alternatives[0];
+  const parts = [
+    `<p>Good news — <strong>${alt.name}</strong> has the exact same active ingredient as ${medicationLabel}. It typically costs ${moneyCash(alt.cash_price)} instead of ${moneyCash(alt.brand_cash_price ?? brandPrice)}.</p>`,
+  ];
+  if (alt.savings_amount != null && alt.savings_percent != null) {
+    parts.push(
+      `<p><strong>That's ${moneyCash(alt.savings_amount)} back in your pocket — about ${alt.savings_percent}% off.</strong></p>`
+    );
+  }
+  parts.push(
+    `<p class="ask-line">💬 Try asking: “Is ${alt.name} a safe generic option for me instead of ${medicationLabel}?”</p>`
+  );
+  el.innerHTML = parts.join("");
+
+  if (alt.savings_amount != null && alt.savings_percent != null) {
+    banner.hidden = false;
+    banner.textContent = `You could save ${moneyCash(alt.savings_amount)} a year (${alt.savings_percent}% off) by asking about ${alt.name}.`;
+  } else {
+    banner.hidden = true;
+  }
+}
+
+function renderProgramSection(programs) {
+  const el = document.getElementById("result-program");
+  if (!programs.length) {
+    el.innerHTML = "<p>We don't have a free medicine program on file for this medication yet.</p>";
+    return null;
+  }
+  const eligible = programs.find((p) => p.eligible === true);
+  const chosen = eligible || programs[0];
+  let pillClass = "status-unscored";
+  let pillText = "Add your income to check";
+  let detail = "";
+  if (chosen.eligible === true) {
+    pillClass = "status-eligible";
+    pillText = "✅ You likely qualify";
+    detail = `<p>${chosen.name} (${chosen.manufacturer}) accepts households up to ${chosen.fpl_limit_percent}% of the poverty line, and your household is at ${chosen.fpl_percent}% — so you're in range. Call ${chosen.phone} with any questions.</p>`;
+  } else if (chosen.eligible === false) {
+    pillClass = "status-not-eligible";
+    pillText = "Not likely eligible right now";
+    detail = `<p>${chosen.reason}</p>`;
+  } else {
+    detail = `<p>Add your income and household size above so we can check ${chosen.name}'s income limit for you.</p>`;
+  }
+  el.innerHTML = `<span class="status-pill ${pillClass}">${pillText}</span>${detail}`;
+  return chosen;
+}
+
+document.getElementById("triage-form").addEventListener("submit", async (event) => {
   event.preventDefault();
-  const btn = document.getElementById("submit-btn");
+  const btn = document.getElementById("triage-btn");
+  const empty = document.getElementById("triage-empty");
+  const errorEl = document.getElementById("triage-error");
+  const resultsEl = document.getElementById("triage-results");
+  const banner = document.getElementById("triage-savings-banner");
+  const applicationCard = document.getElementById("application-card");
   btn.disabled = true;
-  setStatus("Generating PDF…");
+  errorEl.hidden = true;
+  banner.hidden = true;
+  setTriageStatus("Remy is checking your options…");
+  const incomeRaw = document.getElementById("triage_income").value;
   const body = {
-    patient_name: document.getElementById("patient_name").value.trim(),
-    medication_name: document.getElementById("medication_name").value,
-    annual_income: Number(document.getElementById("annual_income").value),
-    household_size: Number(document.getElementById("household_size").value),
-    state: document.getElementById("state").value,
-    is_uninsured: document.getElementById("is_uninsured").checked,
-    program_name: document.getElementById("program_name").value,
+    query: document.getElementById("triage_query").value.trim(),
+    household_size: Number(document.getElementById("triage_household").value) || 1,
+    state: document.getElementById("triage_state").value,
+    is_uninsured: document.getElementById("triage_uninsured").checked,
+    is_medicare: document.getElementById("triage_medicare").checked,
+  };
+  if (incomeRaw !== "") body.annual_income = Number(incomeRaw);
+
+  try {
+    const res = await fetch("/api/v1/agent/triage", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) {
+      let detail = `Request failed (${res.status})`;
+      try {
+        const payload = await res.json();
+        detail = payload.detail || detail;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(detail);
+    }
+    const payload = await res.json();
+    const savings = payload.savings || {};
+    const fpl = payload.fpl || null;
+    const medicationLabel = payload.medication_query || savings.matched_medication || "your medication";
+
+    empty.hidden = true;
+    resultsEl.hidden = false;
+
+    renderPayingSection(medicationLabel, savings.brand_cash_price);
+    renderGenericSection(medicationLabel, savings.brand_cash_price, savings.alternatives || []);
+    const chosenProgram = renderProgramSection(savings.eligible_programs || []);
+
+    const canApply = Boolean(chosenProgram && fpl && savings.matched_medication);
+    if (canApply) {
+      applicationContext = {
+        medication: savings.matched_medication,
+        program_name: chosenProgram.name,
+        annual_income: fpl.annual_income,
+        household_size: fpl.household_size,
+        state: fpl.state,
+        is_uninsured: body.is_uninsured,
+      };
+      applicationCard.hidden = false;
+    } else {
+      applicationContext = null;
+      applicationCard.hidden = true;
+    }
+
+    setTriageStatus("Here's what Remy found — every number above comes from real pricing and eligibility data.");
+  } catch (err) {
+    empty.hidden = true;
+    resultsEl.hidden = true;
+    banner.hidden = true;
+    applicationContext = null;
+    applicationCard.hidden = true;
+    errorEl.hidden = false;
+    errorEl.textContent = err.message || "We couldn't check your options this time — please try again.";
+    setTriageStatus(err.message, true);
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+document.getElementById("apply-form").addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const btn = document.getElementById("apply-btn");
+  const patientName = document.getElementById("apply_patient_name").value.trim();
+  if (!patientName) {
+    setApplyStatus("Please enter your name first.", true);
+    return;
+  }
+  if (!applicationContext) {
+    setApplyStatus("Ask Remy about your medication and income first.", true);
+    return;
+  }
+  btn.disabled = true;
+  setApplyStatus("Preparing your application…");
+  const body = {
+    patient_name: patientName,
+    medication_name: applicationContext.medication,
+    annual_income: applicationContext.annual_income,
+    household_size: applicationContext.household_size,
+    state: applicationContext.state,
+    is_uninsured: applicationContext.is_uninsured,
+    program_name: applicationContext.program_name,
   };
   try {
     const res = await fetch("/api/v1/applications/generate-pdf", {
@@ -168,150 +270,10 @@ document.getElementById("app-form").addEventListener("submit", async (event) => 
     document.body.appendChild(a);
     a.click();
     a.remove();
-    setStatus("Your free application is ready — preview below, and it's downloaded too.");
+    setApplyStatus("Your free application is ready — preview below, and it's downloaded too.");
   } catch (err) {
-    setStatus(err.message, true);
+    setApplyStatus(err.message, true);
   } finally {
     btn.disabled = false;
   }
 });
-
-loadPrograms();
-
-const triageState = document.getElementById("triage_state");
-if (triageState) {
-  STATES.forEach((code) => {
-    const opt = document.createElement("option");
-    opt.value = code;
-    opt.textContent = code;
-    if (code === "PA") opt.selected = true;
-    triageState.appendChild(opt);
-  });
-}
-
-function setTriageStatus(message, isError = false) {
-  const el = document.getElementById("triage-status");
-  el.textContent = message;
-  el.className = "status " + (isError ? "error" : "ok");
-}
-
-function moneyCash(n) {
-  if (n == null || !Number.isFinite(Number(n))) return "—";
-  return Number(n).toLocaleString("en-US", { style: "currency", currency: "USD" });
-}
-
-const GENERIC_MATCH_LABEL = "✅ FDA-Approved Generic Equivalent (Same active medicine)";
-
-const EXAMPLE_SCENARIOS = {
-  humira: {
-    query:
-      "I take Humira, and my family of 2 earns about $32,000 a year. We don't have insurance.",
-    income: 32000,
-    household: 2,
-    state: "PA",
-    uninsured: true,
-    medicare: false,
-  },
-  eliquis: {
-    query: "I take Eliquis. I'm on Medicare and my income is about $28,000 a year.",
-    income: 28000,
-    household: 1,
-    state: "PA",
-    uninsured: false,
-    medicare: true,
-  },
-};
-
-document.querySelectorAll(".example-btn").forEach((btn) => {
-  btn.addEventListener("click", () => {
-    const example = EXAMPLE_SCENARIOS[btn.dataset.example];
-    if (!example) return;
-    document.getElementById("triage_query").value = example.query;
-    document.getElementById("triage_income").value = example.income;
-    document.getElementById("triage_household").value = example.household;
-    const triageStateSelect = document.getElementById("triage_state");
-    if (triageStateSelect) triageStateSelect.value = example.state;
-    document.getElementById("triage_uninsured").checked = example.uninsured;
-    document.getElementById("triage_medicare").checked = example.medicare;
-    setTriageStatus("Example filled in — click \u201cCheck My Options\u201d whenever you're ready.");
-  });
-});
-
-document.getElementById("triage-form").addEventListener("submit", async (event) => {
-  event.preventDefault();
-  const btn = document.getElementById("triage-btn");
-  const empty = document.getElementById("triage-empty");
-  const errorEl = document.getElementById("triage-error");
-  const planEl = document.getElementById("triage-plan");
-  const altsWrap = document.getElementById("triage-alts");
-  const banner = document.getElementById("triage-savings-banner");
-  btn.disabled = true;
-  errorEl.hidden = true;
-  banner.hidden = true;
-  setTriageStatus("Checking your options…");
-  const incomeRaw = document.getElementById("triage_income").value;
-  const body = {
-    query: document.getElementById("triage_query").value.trim(),
-    household_size: Number(document.getElementById("triage_household").value) || 1,
-    state: document.getElementById("triage_state").value,
-    is_uninsured: document.getElementById("triage_uninsured").checked,
-    is_medicare: document.getElementById("triage_medicare").checked,
-  };
-  if (incomeRaw !== "") body.annual_income = Number(incomeRaw);
-  try {
-    const res = await fetch("/api/v1/agent/triage", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) {
-      let detail = `Request failed (${res.status})`;
-      try {
-        const payload = await res.json();
-        detail = payload.detail || detail;
-      } catch {
-        /* ignore */
-      }
-      throw new Error(detail);
-    }
-    const payload = await res.json();
-    empty.hidden = true;
-    planEl.hidden = false;
-    planEl.textContent = payload.action_plan || "We couldn't put together a plan this time — please try again.";
-    const alts = (payload.savings && payload.savings.alternatives) || [];
-    const tbody = document.getElementById("triage-alts-body");
-    tbody.innerHTML = "";
-    if (!alts.length) {
-      altsWrap.hidden = true;
-    } else {
-      altsWrap.hidden = false;
-      alts.forEach((alt) => {
-        const tr = document.createElement("tr");
-        const save =
-          alt.savings_percent == null
-            ? "—"
-            : `${moneyCash(alt.savings_amount)} (${alt.savings_percent}% off)`;
-        const genericMatch = alt.te_code ? GENERIC_MATCH_LABEL : "—";
-        tr.innerHTML = `<td>${alt.name}</td><td>${genericMatch}</td><td>${moneyCash(alt.cash_price)}</td><td>${save}</td>`;
-        tbody.appendChild(tr);
-      });
-      const top = alts[0];
-      if (top && top.savings_amount != null && top.savings_percent != null) {
-        banner.hidden = false;
-        banner.textContent = `You could save ${moneyCash(top.savings_amount)} (${top.savings_percent}% off) by asking about ${top.name}.`;
-      }
-    }
-    setTriageStatus("Here's what we found — every number below comes from real pricing and eligibility data.");
-  } catch (err) {
-    empty.hidden = true;
-    planEl.hidden = true;
-    altsWrap.hidden = true;
-    banner.hidden = true;
-    errorEl.hidden = false;
-    errorEl.textContent = err.message || "We couldn't check your options this time — please try again.";
-    setTriageStatus(err.message, true);
-  } finally {
-    btn.disabled = false;
-  }
-});
-

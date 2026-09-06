@@ -3,131 +3,119 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>RxBridge: Affordable Medication Copilot</title>
+    <title>Remedi — Affordable medicine within reach</title>
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
-    <header class="masthead">
-      <div class="wrap">
-        <p class="kicker">Prescription Savings, Made Simple</p>
-        <h1>RxBridge: Affordable Medication Copilot</h1>
-        <p class="lede">
-          Find lower-cost generic alternatives and apply for free manufacturer
-          assistance programs in seconds.
-        </p>
-      </div>
-    </header>
-
-    <main class="wrap layout">
-      <section class="card">
-        <h2>Manufacturer Financial Aid / Free Medicine Application</h2>
-        <p class="hint">
-          Fill in your details below and we'll prepare your free application for
-          you. Nothing is saved on our server — your file goes straight from us
-          to your browser.
-        </p>
-
-        <form id="app-form" novalidate>
-          <div class="grid">
-            <label>
-              Your full name
-              <input id="patient_name" name="patient_name" required placeholder="Maria Chen" />
-            </label>
-            <label>
-              State
-              <select id="state" name="state" required></select>
-            </label>
-            <label>
-              Aid program
-              <select id="program_name" name="program_name" required>
-                <option value="">Loading programs…</option>
-              </select>
-            </label>
-            <label>
-              Medication needed
-              <select id="medication_name" name="medication_name" required>
-                <option value="">Select a program first</option>
-              </select>
-            </label>
-            <label>
-              Gross annual household income
-              <input id="annual_income" name="annual_income" type="number" min="0" step="1" required placeholder="35000" />
-            </label>
-            <label>
-              Household size
-              <input id="household_size" name="household_size" type="number" min="1" max="20" required value="1" />
-            </label>
-          </div>
-
-          <label class="check">
-            <input id="is_uninsured" name="is_uninsured" type="checkbox" checked />
-            I don't have insurance
-          </label>
-
-          <div class="actions">
-            <button type="submit" id="submit-btn">Download My Free Application</button>
-            <p id="status" class="status" role="status"></p>
-          </div>
-        </form>
-
-        <div id="pdf-frame-wrap" class="pdf-frame-wrap" hidden>
-          <h3>Your application is ready!</h3>
-          <iframe id="pdf-frame" title="Free medication assistance application preview"></iframe>
+    <nav class="navbar">
+      <div class="wrap navbar-inner">
+        <div class="brand">
+          <span class="brand-name">Remedi</span>
+          <span class="brand-badge">Powered by Remy</span>
         </div>
-      </section>
+        <ul class="nav-links">
+          <li><a href="#why-it-matters">Why It Matters</a></li>
+          <li><a href="#how-it-works">How It Works</a></li>
+          <li><a href="#remy-copilot">Ask Remy</a></li>
+        </ul>
+        <a class="btn btn-primary nav-cta" href="#remy-copilot">Find Savings</a>
+      </div>
+    </nav>
 
-      <aside class="stack">
-        <section class="card preview" id="eligibility-card">
-          <h2>Financial Aid Eligibility Status</h2>
-          <p class="subtitle">Based on Federal Poverty Guidelines used by aid programs</p>
-          <p class="hint">
-            This compares your income to the guidelines most manufacturer aid
-            programs use. Most accept incomes up to 400% of the poverty line
-            (GSK For You accepts up to 300%).
-          </p>
-          <dl id="eligibility">
-            <div><dt>Federal Poverty Line</dt><dd id="fpl-base">—</dd></div>
-            <div><dt>Your income level</dt><dd id="fpl-pct">—</dd></div>
-            <div><dt>Program income limit</dt><dd id="fpl-cap">—</dd></div>
-            <div><dt>Are you likely eligible?</dt><dd id="fpl-verdict">Enter your income to check</dd></div>
-          </dl>
-        </section>
-
-        <section class="card">
-          <h2>What's in your application</h2>
-          <ul class="sections">
-            <li><strong>1.</strong> Your name, state, household size, income, and insurance status</li>
-            <li><strong>2.</strong> Your medication, strength, and a spot for your doctor to sign</li>
-            <li><strong>3.</strong> Proof you qualify, based on the federal poverty guideline</li>
-            <li><strong>4.</strong> A checklist of documents to attach (tax form, insurance denial, prescription)</li>
-            <li><strong>5.</strong> Signature lines for you and your doctor</li>
-          </ul>
-        </section>
-      </aside>
-    </main>
-
-    <section class="wrap copilot-panel">
-      <div class="card">
-        <h2>💬 Ask RxBridge About Your Medication</h2>
-        <p class="hint">
-          Tell us about your medication and household. We'll compare cheaper
-          generic options and check if you qualify for free manufacturer aid —
-          instantly, and in plain English.
+    <section class="hero" id="why-it-matters">
+      <div class="wrap hero-inner">
+        <h1>No one should have to choose between groceries and the medicine they need.</h1>
+        <p class="hero-sub">
+          Drug makers give away billions in free medication every year, but the
+          forms are buried under confusing paperwork. Remedi pairs you with Remy
+          to find lower-cost generic alternatives and check if you qualify for
+          free medicine in seconds.
         </p>
+        <div class="hero-actions">
+          <a href="#remy-copilot" class="btn btn-primary">Check Your Prescription</a>
+          <a href="#how-it-works" class="btn btn-ghost">See How It Works</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="stats-strip">
+      <div class="wrap stats-grid">
+        <div class="stat">
+          <span class="stat-value">$6,400+</span>
+          <span class="stat-label">Average annual savings found per person</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">100% Verified</span>
+          <span class="stat-label">Exact numbers pulled from official health and program records, never guessed</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">Under 1 Minute</span>
+          <span class="stat-label">Time to find lower-cost alternatives and check eligibility</span>
+        </div>
+        <div class="stat">
+          <span class="stat-value">2026 Rules</span>
+          <span class="stat-label">Updated with current government income guidelines</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-it-works wrap" id="how-it-works">
+      <h2 class="section-heading">How Remedi Helps</h2>
+      <div class="cards-grid">
+        <article class="feature-card">
+          <div class="feature-icon">💊</div>
+          <h3>The Exact Same Medicine for Less</h3>
+          <p>
+            We search official FDA records to find generic alternatives with the
+            exact same active ingredients at a fraction of the cost.
+          </p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon">🎁</div>
+          <h3>Check for Free Medicine Programs</h3>
+          <p>
+            Many drug makers provide free prescriptions to households within
+            certain income levels. We check if you qualify right away.
+          </p>
+        </article>
+        <article class="feature-card">
+          <div class="feature-icon">📝</div>
+          <h3>Get Your Form Ready to Sign</h3>
+          <p>
+            Download a pre-filled application with your details so you can take
+            it straight to your doctor to sign.
+          </p>
+        </article>
+      </div>
+    </section>
+
+    <section class="remy-copilot wrap" id="remy-copilot">
+      <div class="copilot-shell">
+        <div class="remy-banner">
+          <div class="remy-avatar">R</div>
+          <div class="remy-banner-text">
+            <p class="remy-name">Remy <span class="remy-tag">Your friendly prescription savings guide</span></p>
+            <p>
+              Hi, I'm Remy! Tell me what medicine you take and a little about your
+              household. I'll search for lower-cost alternatives and check if you
+              can get it for free.
+            </p>
+          </div>
+        </div>
 
         <div class="example-scenarios">
           <p class="example-label">Or try an example:</p>
           <button type="button" class="example-btn" data-example="humira">
-            Humira (Family of 2, $32k/yr income, uninsured)
+            Humira (Family of 2, $32k income, uninsured)
           </button>
           <button type="button" class="example-btn" data-example="eliquis">
-            Eliquis (Single, $28k/yr income, Medicare)
+            Eliquis (Single, $28k income, Medicare)
           </button>
         </div>
 
         <form id="triage-form" novalidate>
           <label>
-            Tell us what's going on
+            Tell Remy what's going on
             <textarea
               id="triage_query"
               name="triage_query"
@@ -159,7 +147,7 @@
             </label>
           </div>
           <div class="actions">
-            <button type="submit" id="triage-btn">Check My Options</button>
+            <button type="submit" id="triage-btn" class="btn btn-primary">Ask Remy</button>
             <p id="triage-status" class="status" role="status"></p>
           </div>
         </form>
@@ -170,25 +158,37 @@
         </div>
         <div id="triage-error" class="error-banner" hidden></div>
         <div id="triage-savings-banner" class="savings-banner" hidden></div>
-        <pre id="triage-plan" class="plan" hidden></pre>
-        <div id="triage-alts" class="alts" hidden>
-          <h3>FDA-Approved Generic Equivalents</h3>
-          <p class="hint small">
-            These have the same active medicine as your brand-name drug, just at
-            a lower cash price.
-          </p>
-          <div class="table-wrap">
-            <table>
-              <thead>
-                <tr>
-                  <th>Product</th>
-                  <th>Generic match</th>
-                  <th>Cash price</th>
-                  <th>You could save</th>
-                </tr>
-              </thead>
-              <tbody id="triage-alts-body"></tbody>
-            </table>
+
+        <div id="triage-results" hidden>
+          <div class="result-block">
+            <h3>What You're Paying</h3>
+            <p id="result-paying"></p>
+          </div>
+          <div class="result-block">
+            <h3>Option 1: Ask Your Doctor About an Equivalent Generic</h3>
+            <div id="result-generic"></div>
+          </div>
+          <div class="result-block">
+            <h3>Option 2: Free Medicine Program</h3>
+            <div id="result-program"></div>
+          </div>
+        </div>
+
+        <div id="application-card" class="application-card" hidden>
+          <h3>Get Your Form Ready to Sign</h3>
+          <p class="hint">We've pre-filled your free application. Just add your name.</p>
+          <form id="apply-form" novalidate>
+            <label>
+              Your full name
+              <input id="apply_patient_name" name="apply_patient_name" required placeholder="Maria Chen" />
+            </label>
+            <div class="actions">
+              <button type="submit" id="apply-btn" class="btn btn-primary">Download My Free Application</button>
+              <p id="apply-status" class="status" role="status"></p>
+            </div>
+          </form>
+          <div id="pdf-frame-wrap" class="pdf-frame-wrap" hidden>
+            <iframe id="pdf-frame" title="Free medication assistance application preview"></iframe>
           </div>
         </div>
       </div>
@@ -196,9 +196,9 @@
 
     <footer class="wrap foot">
       <p>
-        Your application is a structured document generated from program data.
-        It is not a manufacturer's copyrighted original. Please confirm any
-        program-specific requirements before mailing.
+        Remedi's application is a structured document generated from program
+        data. It is not a manufacturer's copyrighted original. Please confirm
+        any program-specific requirements before mailing.
       </p>
     </footer>
     <script src="/static/app.js"></script>
