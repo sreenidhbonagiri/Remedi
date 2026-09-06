@@ -3,6 +3,7 @@
   --surface: #ffffff;
   --border: #eae7e1;
   --border-soft: #f0eee9;
+  --footer-bg: #f1efe9;
   --ink: #1c1917;
   --ink-soft: #52525b;
   --ink-faint: #a1a1aa;
@@ -387,24 +388,51 @@ body {
   line-height: 1.55;
 }
 
-/* ---------- Editorial narrative section ---------- */
-.narrative { padding: 4.5rem 0; }
-.narrative-grid {
+/* ---------- Editorial narrative section (no cards, magazine-style) ---------- */
+.narrative { padding: 5rem 0; }
+.narrative-layout {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.6rem;
+  grid-template-columns: 0.85fr 1.15fr;
+  gap: 3.5rem;
+  align-items: start;
+  text-align: left;
 }
-.narrative-card { padding: 2rem 1.8rem; }
-.narrative-card .narrative-index {
-  font-size: 0.78rem;
+.narrative-intro { position: sticky; top: 6rem; }
+.narrative-intro .section-eyebrow { text-align: left; }
+.narrative-intro h2 {
+  font-size: 1.85rem;
   font-weight: 800;
+  line-height: 1.3;
+  margin: 0 0 1rem;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+}
+.narrative-intro p {
+  margin: 0;
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 26rem;
+}
+.narrative-list {
+  display: flex;
+  flex-direction: column;
+}
+.narrative-item {
+  padding: 1.8rem 0;
+  border-top: 1px solid var(--border-soft);
+}
+.narrative-item:first-child { border-top: none; padding-top: 0; }
+.narrative-item .narrative-index {
+  font-size: 0.78rem;
+  font-weight: 700;
   letter-spacing: 0.05em;
   color: var(--crimson);
   text-transform: uppercase;
-  margin: 0 0 0.9rem;
+  margin: 0 0 0.6rem;
 }
-.narrative-card h3 { margin: 0 0 0.7rem; font-size: 1.15rem; color: var(--ink); line-height: 1.35; }
-.narrative-card p { margin: 0; color: var(--ink-soft); line-height: 1.65; font-size: 0.95rem; }
+.narrative-item h3 { margin: 0 0 0.55rem; font-size: 1.15rem; color: var(--ink); line-height: 1.35; }
+.narrative-item p { margin: 0; color: var(--ink-soft); line-height: 1.65; font-size: 0.96rem; max-width: 34rem; }
 
 /* ---------- Steps (01, 02, 03) ---------- */
 .steps { padding: 4.5rem 0; }
@@ -449,15 +477,11 @@ body {
   transform: translateY(-4px);
   box-shadow: var(--shadow-card);
 }
-.feature-icon {
-  font-size: 1.7rem;
-  width: 54px;
-  height: 54px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background: var(--blush);
+.feature-mark {
+  width: 30px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--crimson);
   margin: 0 auto 1.1rem;
 }
 .feature-card h3 { margin: 0 0 0.6rem; font-size: 1.08rem; color: var(--ink); }
@@ -479,38 +503,38 @@ body {
 .banner-copy h2 { margin: 0 0 0.4rem; font-size: 1.6rem; color: var(--crimson-deep); }
 .banner-copy p { margin: 0; color: #b91c4a; }
 
-/* ---------- Footer ---------- */
-.foot-main { padding: 3.5rem 0 2.5rem; border-top: 1px solid var(--border-soft); }
-.foot-grid {
-  display: grid;
-  grid-template-columns: 1.4fr 1fr 1fr;
-  gap: 2.5rem;
-}
-.foot-brand { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; margin-bottom: 0.9rem; }
-.foot-mission { color: var(--ink-soft); font-size: 0.9rem; line-height: 1.6; max-width: 26rem; margin: 0; }
-.foot-col h4 {
-  margin: 0 0 1rem;
-  font-size: 0.82rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  color: var(--ink-faint);
-}
-.foot-col ul { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0.65rem; }
-.foot-col a, .foot-col span {
-  color: var(--ink-soft);
-  text-decoration: none;
-  font-size: 0.92rem;
-}
-.foot-col a:hover { color: var(--crimson); }
-.foot-bottom {
-  margin-top: 2.6rem;
-  padding-top: 1.8rem;
+/* ---------- Footer (warm grey-beige band, no dead links) ---------- */
+.foot-main {
+  padding: 3.2rem 0 2.2rem;
+  margin-top: 2rem;
+  background: var(--footer-bg);
   border-top: 1px solid var(--border-soft);
+}
+.foot-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.9rem;
+}
+.foot-brand { display: flex; align-items: center; gap: 0.5rem; text-decoration: none; }
+.foot-mission { color: var(--ink-soft); font-size: 0.92rem; line-height: 1.6; max-width: 30rem; margin: 0; }
+.foot-link {
+  color: var(--crimson-deep);
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-decoration: none;
+}
+.foot-link:hover { color: var(--crimson); }
+.foot-bottom {
+  margin-top: 1.6rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--border);
   color: var(--ink-faint);
-  font-size: 0.83rem;
+  font-size: 0.82rem;
   line-height: 1.6;
   text-align: center;
+  max-width: 40rem;
 }
 
 /* ---------- App workspace (centered) ---------- */
@@ -812,8 +836,8 @@ select option { background: #ffffff; color: var(--ink); }
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
   .cards-grid { grid-template-columns: 1fr; }
   .steps-grid { grid-template-columns: 1fr; }
-  .narrative-grid { grid-template-columns: 1fr; }
-  .foot-grid { grid-template-columns: 1fr; gap: 1.8rem; }
+  .narrative-layout { grid-template-columns: 1fr; gap: 1.8rem; }
+  .narrative-intro { position: static; }
 }
 
 @media (max-width: 720px) {

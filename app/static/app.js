@@ -137,7 +137,7 @@ function renderGenericSection(medicationLabel, brandPrice, alternatives) {
     );
   }
   parts.push(
-    `<p class="ask-line">💬 Try asking: “Is ${alt.name} a safe generic option for me instead of ${medicationLabel}?”</p>`
+    `<p class="ask-line">Try asking: “Is ${alt.name} a safe generic option for me instead of ${medicationLabel}?”</p>`
   );
   el.innerHTML = parts.join("");
 
@@ -162,7 +162,7 @@ function renderProgramSection(programs) {
   let detail = "";
   if (chosen.eligible === true) {
     pillClass = "status-eligible";
-    pillText = "✅ You likely qualify";
+    pillText = "You likely qualify";
     detail = `<p>${chosen.name} (${chosen.manufacturer}) accepts households up to ${chosen.fpl_limit_percent}% of the poverty line, and your household is at ${chosen.fpl_percent}% — so you're in range. Call ${chosen.phone} with any questions.</p>`;
   } else if (chosen.eligible === false) {
     pillClass = "status-not-eligible";

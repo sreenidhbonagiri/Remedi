@@ -329,7 +329,7 @@ def generate_assistance_pdf(patient_data: dict, program_name: str, medication_na
     header_title = program_name
     if "assist" not in program_name.lower() and "assistance" not in program_name.lower():
         header_title = f"{program_name} Patient Assistance"
-    story.append(Paragraph("REMEDI  ✦  Affordable Medication Copilot", styles["brand"]))
+    story.append(Paragraph("REMEDI — Affordable Medication Copilot", styles["brand"]))
     story.append(Paragraph(header_title, styles["masthead"]))
     story.append(
         Paragraph(

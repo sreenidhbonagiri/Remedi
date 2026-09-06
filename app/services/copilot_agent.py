@@ -291,7 +291,7 @@ def _synthesize_from_tools(state: AgentState) -> str:
             if flag is True:
                 lines.append(
                     (
-                        f"✅ Status: ELIGIBLE — {name} ({manufacturer}) accepts households up to "
+                        f"Status: ELIGIBLE — {name} ({manufacturer}) accepts households up to "
                         f"{cap}% FPL, and yours qualifies. Scroll down to download your pre-filled "
                         f"application, or call {phone} with questions."
                     )
