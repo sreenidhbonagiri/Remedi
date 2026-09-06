@@ -4,6 +4,12 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Remedi — Affordable medicine within reach</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700;800&display=swap"
+      rel="stylesheet"
+    />
     <link rel="stylesheet" href="/static/styles.css" />
   </head>
   <body>
@@ -34,6 +40,27 @@
     </nav>
 
     <section class="hero">
+      <div class="hero-sticker hero-sticker--pill" aria-hidden="true">
+        <svg viewBox="0 0 100 50">
+          <rect x="2" y="2" width="96" height="46" rx="23" fill="#ffffff" stroke="#1c1917" stroke-width="4" />
+          <path d="M50 2 H75 A23 23 0 0 1 75 48 H50 Z" fill="#be123c" stroke="#1c1917" stroke-width="4" />
+        </svg>
+      </div>
+      <div class="hero-sticker hero-sticker--cross" aria-hidden="true">
+        <svg viewBox="0 0 60 60">
+          <rect x="3" y="3" width="54" height="54" rx="14" fill="#ecfdf5" stroke="#1c1917" stroke-width="4" />
+          <rect x="26" y="14" width="8" height="32" fill="#047857" />
+          <rect x="14" y="26" width="32" height="8" fill="#047857" />
+        </svg>
+      </div>
+      <div class="hero-sticker hero-sticker--bottle" aria-hidden="true">
+        <svg viewBox="0 0 60 80">
+          <rect x="20" y="2" width="20" height="12" rx="2" fill="#1c1917" />
+          <rect x="4" y="12" width="52" height="64" rx="10" fill="#fde047" stroke="#1c1917" stroke-width="4" />
+          <rect x="4" y="30" width="52" height="18" fill="#ffffff" stroke="#1c1917" stroke-width="4" />
+          <line x1="14" y1="39" x2="46" y2="39" stroke="#1c1917" stroke-width="3" />
+        </svg>
+      </div>
       <div class="wrap hero-inner">
         <span class="eyebrow-pill">Free &amp; Lower-Cost Prescriptions</span>
         <h1>Prescription costs are broken. Getting help shouldn't be.</h1>
@@ -166,33 +193,65 @@
         <h2 class="section-heading">Core Capabilities</h2>
         <p class="section-sub">Built on official data, not guesswork.</p>
       </div>
-      <div class="cards-grid">
-        <article class="feature-card glass-card">
-          <div class="feature-badge badge-blush" aria-hidden="true">💊</div>
+      <div class="cap-grid">
+        <article class="cap-card cap-card--wide">
+          <div class="cap-graphic" aria-hidden="true">
+            <svg viewBox="0 0 100 50">
+              <rect x="2" y="2" width="96" height="46" rx="23" fill="#ffffff" stroke="#1c1917" stroke-width="4" />
+              <path d="M50 2 H75 A23 23 0 0 1 75 48 H50 Z" fill="#be123c" stroke="#1c1917" stroke-width="4" />
+            </svg>
+          </div>
           <h3>Identical Generic Matching</h3>
           <p>
             We search official FDA records to find generic alternatives with
             the exact same active ingredients at a fraction of the cost.
           </p>
         </article>
-        <article class="feature-card glass-card">
-          <div class="feature-badge badge-sage" aria-hidden="true">🎁</div>
+        <article class="cap-card cap-card--mint">
+          <div class="cap-graphic" aria-hidden="true">
+            <svg viewBox="0 0 60 60">
+              <rect x="3" y="3" width="54" height="54" rx="14" fill="#ffffff" stroke="#1c1917" stroke-width="4" />
+              <rect x="26" y="14" width="8" height="32" fill="#047857" />
+              <rect x="14" y="26" width="32" height="8" fill="#047857" />
+            </svg>
+          </div>
           <h3>Free Manufacturer Aid Check</h3>
           <p>
             Many drug makers provide free prescriptions to households within
             certain income levels. We check if you qualify right away.
           </p>
         </article>
-        <article class="feature-card glass-card">
-          <div class="feature-badge badge-blush" aria-hidden="true">📝</div>
+        <article class="cap-card cap-card--blush">
+          <div class="cap-graphic" aria-hidden="true">
+            <svg viewBox="0 0 60 74">
+              <rect x="14" y="2" width="32" height="10" rx="3" fill="#1c1917" />
+              <rect x="4" y="8" width="52" height="64" rx="6" fill="#ffffff" stroke="#1c1917" stroke-width="4" />
+              <line x1="14" y1="26" x2="46" y2="26" stroke="#1c1917" stroke-width="3" />
+              <line x1="14" y1="38" x2="46" y2="38" stroke="#1c1917" stroke-width="3" />
+              <line x1="14" y1="50" x2="34" y2="50" stroke="#1c1917" stroke-width="3" />
+            </svg>
+          </div>
           <h3>Ready-to-Sign Application PDF</h3>
           <p>
             Download a pre-filled application with your details so you can
             take it straight to your doctor to sign.
           </p>
         </article>
-        <article class="feature-card glass-card">
-          <div class="feature-badge badge-sage" aria-hidden="true">🎯</div>
+        <article class="cap-card cap-card--amber">
+          <div class="cap-graphic" aria-hidden="true">
+            <svg viewBox="0 0 70 60">
+              <rect x="2" y="2" width="66" height="56" rx="10" fill="#ffffff" stroke="#1c1917" stroke-width="4" />
+              <polyline
+                points="10,42 24,26 34,34 48,14 60,22"
+                fill="none"
+                stroke="#be123c"
+                stroke-width="4"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+              <circle cx="60" cy="22" r="4" fill="#be123c" />
+            </svg>
+          </div>
           <h3>100% Exact Numbers</h3>
           <p>
             Every dollar figure and eligibility status comes straight from

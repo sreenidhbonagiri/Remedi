@@ -16,11 +16,17 @@
   --forest: #047857;
   --sage: #ecfdf5;
   --sage-border: #d1fae5;
-  --radius-lg: 24px;
-  --radius-md: 16px;
-  --radius-sm: 10px;
+  --amber-bg: #fef9c3;
+  --amber: #fbbf24;
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 8px;
   --shadow-soft: 0 4px 20px -2px rgba(28, 25, 23, 0.06);
   --shadow-card: 0 10px 30px -8px rgba(28, 25, 23, 0.1);
+  --brutal-border: 3px;
+  --shadow-brutal-sm: 4px 4px 0 var(--ink);
+  --shadow-brutal: 6px 6px 0 var(--ink);
+  --shadow-brutal-lg: 10px 10px 0 var(--ink);
 }
 
 * { box-sizing: border-box; }
@@ -35,18 +41,22 @@ body {
   min-height: 100vh;
 }
 
+h1, h2, h3, .brand-name, .stat-value, .step-number, .banner-copy h2 {
+  font-family: "Space Grotesk", "Inter", "Segoe UI", system-ui, sans-serif;
+}
+
 .wrap {
   width: min(1140px, calc(100% - 2.5rem));
   margin: 0 auto;
 }
 
-/* ---------- Surfaces ---------- */
+/* ---------- Surfaces (thick borders, hard offset shadows) ---------- */
 .glass-card {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: var(--brutal-border) solid var(--ink);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-soft);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+  box-shadow: var(--shadow-brutal);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 /* ---------- Floating pill navigation ---------- */
@@ -65,11 +75,9 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: var(--shadow-card);
+  background: var(--surface);
+  border: var(--brutal-border) solid var(--ink);
+  box-shadow: var(--shadow-brutal-sm);
 }
 .nav-links {
   display: flex;
@@ -127,7 +135,7 @@ body {
   white-space: nowrap;
 }
 
-/* ---------- Buttons ---------- */
+/* ---------- Buttons (neobrutalist press-down interaction) ---------- */
 .btn {
   position: relative;
   display: inline-flex;
@@ -141,12 +149,13 @@ body {
   padding: 0.8rem 1.5rem;
   text-decoration: none;
   cursor: pointer;
-  border: 1px solid transparent;
-  transition: transform 0.18s ease, box-shadow 0.18s ease, filter 0.18s ease, border-color 0.18s ease, color 0.18s ease, background 0.18s ease;
+  border: var(--brutal-border) solid var(--ink);
+  box-shadow: var(--shadow-brutal-sm);
+  transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.15s ease, color 0.15s ease;
 }
-.btn:hover { transform: translateY(-2px); box-shadow: 0 12px 26px rgba(190, 18, 60, 0.16); }
-.btn:active { transform: translateY(0); box-shadow: none; }
-.btn:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: none; }
+.btn:hover { transform: translate(-2px, -2px); box-shadow: var(--shadow-brutal); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ink); }
+.btn:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: var(--shadow-brutal-sm); }
 .btn-primary {
   background: var(--crimson);
   color: #fff9f8;
@@ -155,9 +164,8 @@ body {
 .btn-ghost {
   background: var(--surface);
   color: var(--ink);
-  border: 1px solid var(--border);
 }
-.btn-ghost:hover { border-color: var(--crimson); color: var(--crimson); box-shadow: 0 12px 26px rgba(190, 18, 60, 0.08); }
+.btn-ghost:hover { background: var(--amber-bg); color: var(--ink); }
 .btn-pill { border-radius: 999px; }
 
 /* ---------- Remy the robot mascot ---------- */
@@ -234,7 +242,17 @@ body {
 }
 
 /* ---------- Hero (fully centered) ---------- */
-.hero { padding: 3.75rem 0 3rem; text-align: center; }
+.hero { padding: 3.75rem 0 3rem; text-align: center; position: relative; }
+.hero-sticker {
+  position: absolute;
+  z-index: 1;
+  filter: drop-shadow(3px 4px 0 rgba(28, 25, 23, 0.15));
+  animation: floatCard 5s ease-in-out infinite;
+}
+.hero-sticker svg { width: 100%; height: 100%; display: block; }
+.hero-sticker--pill { width: 92px; top: 6%; left: 4%; transform: rotate(-14deg); animation-delay: 0.3s; }
+.hero-sticker--cross { width: 58px; top: 14%; right: 6%; transform: rotate(10deg); animation-delay: 0.9s; }
+.hero-sticker--bottle { width: 60px; bottom: 4%; left: 9%; transform: rotate(8deg); animation-delay: 0.6s; }
 .hero-inner {
   max-width: 780px;
   margin: 0 auto;
@@ -433,8 +451,8 @@ body {
   text-align: center;
 }
 .step-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-card);
+  transform: translate(-3px, -3px);
+  box-shadow: var(--shadow-brutal-lg);
 }
 .step-number {
   display: inline-flex;
@@ -452,38 +470,81 @@ body {
 .step-card h3 { margin: 0 0 0.6rem; font-size: 1.08rem; color: var(--ink); }
 .step-card p { margin: 0; color: var(--ink-soft); line-height: 1.6; font-size: 0.94rem; }
 
-/* ---------- Feature/capabilities cards (centered grid) ---------- */
+/* ---------- Core Capabilities (asymmetric bento, each card different) ---------- */
 .capabilities { padding: 1rem 0 4.5rem; }
-.cards-grid {
+.cap-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.3rem;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 1.4rem;
+  align-items: stretch;
 }
-.feature-card {
-  padding: 2rem 1.6rem;
-  text-align: center;
-  transition: border-color 0.25s ease, box-shadow 0.25s ease, transform 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.4);
-}
-.feature-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: var(--shadow-card);
-}
-.feature-badge {
-  width: 58px;
-  height: 58px;
+.cap-card {
+  position: relative;
+  overflow: hidden;
+  text-align: left;
+  border: var(--brutal-border) solid var(--ink);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-brutal);
+  padding: 1.9rem 1.8rem;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  font-size: 1.6rem;
-  margin: 0 auto 1.2rem;
-  transition: transform 0.25s ease;
+  flex-direction: column;
+  justify-content: flex-end;
+  min-height: 200px;
+  transition: transform 0.18s cubic-bezier(0.2, 0.9, 0.3, 1.4), box-shadow 0.18s ease;
 }
-.feature-card:hover .feature-badge { transform: rotate(-6deg) scale(1.08); }
-.badge-blush { background: var(--blush); }
-.badge-sage { background: var(--sage); }
-.feature-card h3 { margin: 0 0 0.6rem; font-size: 1.08rem; color: var(--ink); }
-.feature-card p { margin: 0; color: var(--ink-soft); line-height: 1.6; font-size: 0.94rem; }
+.cap-card:hover {
+  transform: translate(-4px, -4px) rotate(0deg) !important;
+  box-shadow: var(--shadow-brutal-lg);
+}
+.cap-card h3 {
+  position: relative;
+  z-index: 2;
+  margin: 0 0 0.5rem;
+  font-size: 1.15rem;
+  color: var(--ink);
+}
+.cap-card p {
+  position: relative;
+  z-index: 2;
+  margin: 0;
+  color: var(--ink-soft);
+  line-height: 1.6;
+  font-size: 0.94rem;
+  max-width: 24rem;
+}
+.cap-graphic {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.cap-card--wide {
+  grid-column: span 4;
+  background: var(--surface);
+  transform: rotate(-1deg);
+}
+.cap-card--wide .cap-graphic { width: 130px; bottom: -18px; right: -6px; transform: rotate(6deg); }
+.cap-card--wide p { max-width: 17rem; }
+
+.cap-card--mint {
+  grid-column: span 2;
+  background: var(--sage);
+  transform: rotate(2deg);
+}
+.cap-card--mint .cap-graphic { width: 62px; top: 1.2rem; right: 1.2rem; transform: rotate(-8deg); }
+
+.cap-card--blush {
+  grid-column: span 3;
+  background: var(--blush);
+  transform: rotate(-2deg);
+}
+.cap-card--blush .cap-graphic { width: 78px; bottom: -14px; right: -4px; transform: rotate(-4deg); }
+
+.cap-card--amber {
+  grid-column: span 3;
+  background: var(--amber-bg);
+  transform: rotate(1deg);
+}
+.cap-card--amber .cap-graphic { width: 90px; bottom: -10px; right: 0; transform: rotate(5deg); }
 
 /* ---------- Bottom CTA banner (centered, blush) ---------- */
 .bottom-banner { padding: 0 0 4.5rem; }
@@ -495,8 +556,8 @@ body {
   gap: 1.1rem;
   padding: 3rem 2.2rem;
   background: var(--blush);
-  border: 1px solid var(--blush-border);
-  box-shadow: none;
+  border: var(--brutal-border) solid var(--ink);
+  box-shadow: var(--shadow-brutal);
 }
 .banner-copy h2 { margin: 0 0 0.4rem; font-size: 1.6rem; color: var(--crimson-deep); }
 .banner-copy p { margin: 0; color: #b91c4a; }
@@ -546,11 +607,9 @@ body {
   gap: 1rem;
   padding: 0.7rem 0.6rem 0.7rem 1.4rem;
   border-radius: 9999px;
-  background: rgba(255, 255, 255, 0.86);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  box-shadow: var(--shadow-card);
+  background: var(--surface);
+  border: var(--brutal-border) solid var(--ink);
+  box-shadow: var(--shadow-brutal-sm);
 }
 .back-link {
   flex: 1;
@@ -832,9 +891,15 @@ select option { background: #ffffff; color: var(--ink); }
 
 @media (max-width: 960px) {
   .stats-grid { grid-template-columns: repeat(2, 1fr); }
-  .cards-grid { grid-template-columns: 1fr; }
+  .cap-grid { grid-template-columns: 1fr; }
+  .cap-card--wide, .cap-card--mint, .cap-card--blush, .cap-card--amber {
+    grid-column: span 1;
+    transform: none;
+  }
+  .cap-card:hover { transform: translate(-3px, -3px) !important; }
   .steps-grid { grid-template-columns: 1fr; }
   .narrative-panel { padding: 1.8rem 1.6rem; }
+  .hero-sticker { display: none; }
 }
 
 @media (max-width: 720px) {
