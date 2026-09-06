@@ -2,7 +2,7 @@ from contextlib import asynccontextmanager
 from pathlib import Path
 
 from fastapi import FastAPI, Request
-from fastapi.responses import HTMLResponse
+from fastapi.responses import FileResponse, HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -48,6 +48,12 @@ def create_app() -> FastAPI:
     @application.get("/app", response_class=HTMLResponse)
     def workspace(request: Request) -> HTMLResponse:
         return templates.TemplateResponse(request, "app.html")
+
+    @application.get("/favicon.ico", include_in_schema=False)
+    def favicon() -> FileResponse:
+        # Browsers request this well-known path directly, ignoring the <link>
+        # tags in <head>, so serve the same Remy-face icon from here too.
+        return FileResponse(APP_DIR / "static" / "favicon.ico")
 
     @application.get("/health")
     def health() -> dict[str, str]:
