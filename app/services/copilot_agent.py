@@ -416,7 +416,7 @@ def run_copilot_agent(
     query: str,
     annual_income: float | None = None,
     household_size: int | None = None,
-    state: str = "PA",
+    state: str | None = None,
     is_uninsured: bool = True,
     is_medicare: bool = False,
 ) -> AgentState:
